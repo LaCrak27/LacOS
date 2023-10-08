@@ -16,7 +16,7 @@ kernel/kernel.o: kernel/kernel.c
 kernel/kernel_entry.o: kernel/kernel_entry.asm
 	nasm kernel/kernel_entry.asm -f elf -o kernel/kernel_entry.o
 clean:
-	rm -fr *.bin *.dis *.o *.ini os-image
+	rm -fr *.bin *.dis *.o *.ini
 	rm -fr kernel/*.o boot/*.bin drivers/*.o
 
 %.o: %.c ${HEADERS}
