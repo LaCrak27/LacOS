@@ -1,6 +1,9 @@
-all: os-image
-os-image: kernel.bin boot_sect.bin
-	cat boot_sect.bin kernel.bin > os-image
+C_SOURCES = $(wildcard kernel/*.c drivers/*.c)
+OBJ = ${C_SOURCES:.c=.o}
+HEADERS = $(wildcard kernel/*.h drivers/*.h)
+all: LacOS
+LacOS: kernel.bin boot_sect.bin
+	cat boot_sect.bin kernel.bin > LacOS
 boot_sect.bin: boot/boot_sect.asm
 	nasm boot/boot_sect.asm -f bin -o boot_sect.bin
 # Build the kernel binary
@@ -16,8 +19,5 @@ clean:
 	rm -fr *.bin *.dis *.o *.ini os-image
 	rm -fr kernel/*.o boot/*.bin drivers/*.o
 
-C_SOURCES = $ (wildcard kernel/*.c drivers/*.c)
-OBJ = $ {C_SOURCES:.c=.o}
-
-%.o: %.c
+%.o: %.c ${HEADERS}
 	gcc -fno-pie -ffreestanding -m32 -c $< -o $@
