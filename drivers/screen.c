@@ -1,5 +1,6 @@
 #include "screen.h"
 #include <low_level.h>
+#include <util.h>
 //Prints a character on the screen at a certain position or at the cursor's pos
 void print_char(char character, int col, int row, char attribute_byte) 
 {
@@ -48,4 +49,45 @@ int get_cursor()
     port_byte_out(REG_SCREEN_CTRL, 15);
     offset += port_byte_in(REG_SCREEN_DATA);
     return offset * 2; //Multiply it by 2 to get the memory adress.
+}
+
+void set_cursor(int offset)
+{
+    offset /= 2; //From memory offset to cursor offset
+    port_byte_out(REG_SCREEN_CTRL, 14);
+    port_byte_out(REG_SCREEN_DATA, (unsigned char)(offset >> 8));
+    port_byte_out(REG_SCREEN_CTRL, 15);
+    port_byte_out(REG_SCREEN_DATA, offset);
+}
+
+void print_at(char* message, int col, int row)
+{
+    if(col >= 0 && row >= 0)
+    {
+        set_cursor(get_screen_offset(col, row));
+    }
+    int i = 0;
+    while(message[i] != 0)
+    {
+        print_char(message[i++], col, row, WHITE_ON_BLACK);
+    }
+}
+
+void print(char* message)
+{
+    print_at(message, -1, -1);
+}
+
+void clear_screen()
+{
+    int row = 0;
+    int col = 0;
+    for(row = 0; row < MAX_ROWS; row++)
+    {
+        for(col=0; col < MAX_COLS; col++)
+        {
+            print_char(' ', col, row, WHITE_ON_BLACK);
+        }
+    }
+    set_cursor(get_screen_offset(0,0));
 }
