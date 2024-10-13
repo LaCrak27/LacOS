@@ -1,11 +1,11 @@
 #include "screen.h"
-#include <low_level.h>
-#include <util.h>
+#include "../kernel/low_level.h"
+#include "../kernel/util.h"
 //Prints a character on the screen at a certain position or at the cursor's pos
 void print_char(char character, int col, int row, char attribute_byte) 
 {
     //Pointer that starts at the beggining of video memory
-    unsigned char *vidmem = (unsigned char *) VIDEO_ADRESS;
+    unsigned char *vidmem = (unsigned char * ) VIDEO_ADRESS;
     if(!attribute_byte) //If it is 0x00
     {
         attribute_byte = WHITE_ON_BLACK;
@@ -90,4 +90,30 @@ void clear_screen()
         }
     }
     set_cursor(get_screen_offset(0,0));
+}
+
+int handle_scrolling(int cursor_offset)
+{
+    if(cursor_offset < MAX_ROWS*MAX_COLS*2)
+    {
+        return cursor_offset;
+    }
+    //Juggles all rows so that they go one before
+    int i;
+    for(i=1; i<MAX_ROWS; i++)
+    {
+        memory_copy(get_screen_offset(0, i) + VIDEO_ADRESS,
+                    get_screen_offset(0, i-1) + VIDEO_ADRESS,
+                    MAX_COLS*2
+        );
+    }
+    //Blank the last line
+    char* last_line = get_screen_offset(0, MAX_ROWS-1) + VIDEO_ADRESS;
+    for(i = 0; i<MAX_COLS*2; i++)
+    {
+        last_line[i] = 0;
+    }
+    //Generate new offset
+    cursor_offset -= 2*MAX_COLS;
+    return cursor_offset;
 }

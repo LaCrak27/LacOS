@@ -2,4 +2,4 @@
 [bits 32]
 [extern main]
 call main
-jmp $
+jmp $ ; Again, we should never get here

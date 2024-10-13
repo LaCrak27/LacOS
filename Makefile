@@ -1,9 +1,9 @@
 C_SOURCES = $(wildcard kernel/*.c drivers/*.c)
 OBJ = ${C_SOURCES:.c=.o}
 HEADERS = $(wildcard kernel/*.h drivers/*.h)
-all: LacOS
-LacOS: kernel.bin boot_sect.bin
-	cat boot_sect.bin kernel.bin > LacOS
+all: LacOS.bin
+LacOS.bin: kernel.bin boot_sect.bin
+	cat boot_sect.bin kernel.bin > LacOS.bin
 boot_sect.bin: boot/boot_sect.asm
 	nasm boot/boot_sect.asm -f bin -o boot_sect.bin
 # Build the kernel binary

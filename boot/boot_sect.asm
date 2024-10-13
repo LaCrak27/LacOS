@@ -47,11 +47,11 @@ begin_pm:
 
     jmp $ ; In case it doenst work
 
-; Variables
+; Constants
 BOOT_DRIVE db 0
-MSG_REAL_MODE db "Boot sector loaded in 16-bit real mode, switching to 32-bit mode...", 0
-MSG_PROT_MODE db "We are now executing 32-bit instructions", 0
-MSG_LOAD_KERNEL db "Loading C kernel...", 0
+MSG_REAL_MODE db "Boot sector loaded in 16-bit real mode, switching to 32-bit mode... \n", 0
+MSG_PROT_MODE db "We are now executing 32-bit instructions \n", 0
+MSG_LOAD_KERNEL db "Loading C kernel...\n", 0
 
 ; Padding and magic number
 times 510-($-$$) db 0
