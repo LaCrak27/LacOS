@@ -1,7 +1,10 @@
 C_SOURCES = $(wildcard kernel/*.c drivers/*.c)
 OBJ = ${C_SOURCES:.c=.o}
 HEADERS = $(wildcard kernel/*.h drivers/*.h)
-all: LacOS.bin
+all: LacOS.img
+LacOS.img: LacOS.bin
+	dd if=/dev/zero of=LacOS.img bs=512 count=2880
+	dd if=LacOS.bin of=LacOS.img conv=notrunc
 LacOS.bin: kernel.bin boot_sect.bin
 	cat boot_sect.bin kernel.bin > LacOS.bin
 boot_sect.bin: boot/boot_sect.asm
@@ -16,7 +19,7 @@ kernel/kernel.o: kernel/kernel.c
 kernel/kernel_entry.o: kernel/kernel_entry.asm
 	nasm kernel/kernel_entry.asm -f elf -o kernel/kernel_entry.o
 clean:
-	rm -fr *.bin *.dis *.o *.ini
+	rm -fr *.bin *.dis *.o *.ini *.img
 	rm -fr kernel/*.o boot/*.bin drivers/*.o
 
 %.o: %.c ${HEADERS}
