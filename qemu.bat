@@ -1,0 +1,1 @@
+qemu-system-x86_64.exe -fda LacOS.bin -audiodev pa,id=speaker -machine pcspk-audiodev=speaker

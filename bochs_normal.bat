@@ -1,0 +1,1 @@
+bochs -f boot.bxrc -q
