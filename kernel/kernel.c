@@ -51,7 +51,8 @@ const unsigned long lowercase[128] = {
     '+', END, DOWN, PGDOWN, INS, DEL, UNKNOWN, UNKNOWN, UNKNOWN, F11, F12, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN,
     UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN,
     UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN,
-    UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN};
+    UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN
+    };
 
 const unsigned long uppercase[128] = {
     UNKNOWN, ESC, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '\b', '\t', 'Q', 'W', 'E', 'R',
@@ -104,31 +105,21 @@ void onKeyPress(char scanCode, char press)
     case 14:
         if (!press)
         {
-            if(currentLineLenght == 0) return;
+            if (currentLineLenght == 0)
+            {
+                return;
+            }
             erase_char();
             currentLineLenght--;
         }
+        break;
     case 28:
-        // Enter key, bypass for now, execute command later
-        return;
         if (press == 0)
         {
-            currentLineLenght = 0;;
+            currentLineLenght = 0;
             printc('\n');
+            print("$>");
         }
-    case 56:
-    case 59:
-    case 60:
-    case 61:
-    case 62:
-    case 63:
-    case 64:
-    case 65:
-    case 66:
-    case 67:
-    case 68:
-    case 87:
-    case 88:
         break;
     case 42:
         // shift key
@@ -164,5 +155,6 @@ void onKeyPress(char scanCode, char press)
                 printc(lowercase[scanCode]);
             }
         }
+        break;
     }
 }
