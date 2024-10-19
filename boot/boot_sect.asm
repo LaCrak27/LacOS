@@ -1,5 +1,5 @@
 [org 0x7c00]
-KERNEL_OFFSET equ 0x1000 ; Where the kernel gets loaded
+KERNEL_OFFSET equ 0x1500 ; Where the kernel gets loaded
 
     mov [BOOT_DRIVE], dl ; Store boot drive in DL
 
@@ -31,7 +31,7 @@ load_kernel:
     call print_string
 
     mov bx, KERNEL_OFFSET ; Place in memory to load data
-    mov dh, 15 ; Number of sectors
+    mov dh, 50 ; Number of sectors
     mov dl, [BOOT_DRIVE] ; Drive selection
     call disk_load
 
@@ -53,6 +53,6 @@ MSG_REAL_MODE db "Boot sector loaded in 16-bit real mode, switching to 32-bit mo
 MSG_PROT_MODE db "We are now executing 32-bit instructions \n", 0
 MSG_LOAD_KERNEL db "Loading C kernel...\n", 0
 
-; Padding and magic number
-times 510-($-$$) db 0
+; Padding and magic number ($-$$ is current line)
+times 510-($-$$) db 0   
 dw 0xaa55

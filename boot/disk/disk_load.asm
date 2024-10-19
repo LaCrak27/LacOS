@@ -13,7 +13,7 @@ disk_load:
 
     pop dx
     cmp dh, al ; Compare sectors read (al) with sectors requested
-    jne disk_error ; Jump if not equal
+    jne disk_check ; Jump if not equal
     ret
 
 disk_error:
@@ -21,6 +21,14 @@ disk_error:
     call print_string
     jmp $
 
+disk_check:
+    mov bx, DISK_CHECK_MSG
+    call print_string
+    jmp $
+
 
 DISK_ERROR_MSG: 
     db "System halted, disk read error, please restart and try again", 0
+
+DISK_CHECK_MSG: 
+    db "System halted, disk read error (number of bytes different), please restart and try again", 0

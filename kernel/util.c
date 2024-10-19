@@ -1,7 +1,7 @@
 #include "util.h"
 #define INT_DIGITS 19 // Works until 64bit
 #define UINT_DIGITS 20
-void memory_copy(char *source, char *dest, int no_bytes)
+void memCopy(char *source, char *dest, int no_bytes)
 {
     int i;
     for (i = 0; i < no_bytes; i++)
@@ -9,6 +9,15 @@ void memory_copy(char *source, char *dest, int no_bytes)
         *(dest + i) = *(source + i);
     }
 }
+
+void memSet(void *dest, char val, unsigned long count)
+{
+    char *temp = (char* ) dest;
+    for (; count != 0; count --){
+        *temp++ = val;
+    }
+}
+
 
 // Source for itoa and uitoa: apple.com
 char * itoa(int i)

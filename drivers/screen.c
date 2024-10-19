@@ -1,6 +1,18 @@
 #include "screen.h"
 #include "../kernel/low_level.h"
 #include "../kernel/util.h"
+//TODO: Make \n use a separate function as well
+void erase_char()
+{
+    unsigned char *vidmem = (unsigned char *)VIDEO_ADRESS;
+    int offset;
+    offset = get_cursor();
+    offset = offset -= 2;
+    vidmem[offset] = ' ';
+    vidmem[offset + 1] = WHITE_ON_BLACK;
+    set_cursor(offset);
+}
+
 // Prints a character on the screen at a certain position or at the cursor's pos
 void print_char(char character, int col, int row, char attribute_byte)
 {
@@ -44,20 +56,20 @@ int get_cursor()
 {
     // reg 14: high byte of offset
     // reg 15: low byte of offset
-    port_byte_out(REG_SCREEN_CTRL, 14);
-    int offset = port_byte_in(REG_SCREEN_DATA) << 8;
-    port_byte_out(REG_SCREEN_CTRL, 15);
-    offset += port_byte_in(REG_SCREEN_DATA);
+    pByteOut(REG_SCREEN_CTRL, 14);
+    int offset = pByteIn(REG_SCREEN_DATA) << 8;
+    pByteOut(REG_SCREEN_CTRL, 15);
+    offset += pByteIn(REG_SCREEN_DATA);
     return offset * 2; // Multiply it by 2 to get the memory adress.
 }
 
 void set_cursor(int offset)
 {
     offset /= 2; // From memory offset to cursor offset
-    port_byte_out(REG_SCREEN_CTRL, 14);
-    port_byte_out(REG_SCREEN_DATA, (unsigned char)(offset >> 8));
-    port_byte_out(REG_SCREEN_CTRL, 15);
-    port_byte_out(REG_SCREEN_DATA, offset);
+    pByteOut(REG_SCREEN_CTRL, 14);
+    pByteOut(REG_SCREEN_DATA, (unsigned char)(offset >> 8));
+    pByteOut(REG_SCREEN_CTRL, 15);
+    pByteOut(REG_SCREEN_DATA, offset);
 }
 
 void print_at(char *message, int col, int row)
@@ -76,6 +88,17 @@ void print_at(char *message, int col, int row)
 void print(char *message)
 {
     print_at(message, -1, -1);
+}
+
+void println(char *message)
+{
+    print(message);
+    print("\n");
+}
+
+void printc(char charToPrint)
+{
+    print_char(charToPrint, -1, -1, WHITE_ON_BLACK);
 }
 
 void clear_screen()
@@ -102,9 +125,9 @@ int handle_scrolling(int cursor_offset)
     int i;
     for (i = 1; i < MAX_ROWS; i++)
     {
-        memory_copy((char *)(get_screen_offset(0, i) + VIDEO_ADRESS),
-                    (char * )(get_screen_offset(0, i - 1) + VIDEO_ADRESS),
-                    MAX_COLS * 2);
+        memCopy((char *)(get_screen_offset(0, i) + VIDEO_ADRESS),
+                (char *)(get_screen_offset(0, i - 1) + VIDEO_ADRESS),
+                MAX_COLS * 2);
     }
     // Blank the last line
     char *last_line = (char *)(get_screen_offset(0, MAX_ROWS - 1) + VIDEO_ADRESS);
