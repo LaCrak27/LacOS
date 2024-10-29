@@ -2,5 +2,6 @@
 # a floppy disk inserted into a computer at boot time .
 floppya: 1_44=LacOS.bin, status = inserted
 boot: a
-# Enable debugger
-display_library: win32, options="gui_debug"
+# Enable debugger and breakpoints
+display_library: win32, options="gui_debug" 
+magic_break: enabled=1

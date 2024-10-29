@@ -1,0 +1,1 @@
+bochsdbg -f debug.bxrc -q

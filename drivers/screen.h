@@ -17,3 +17,6 @@ void println(char* message);
 void printc(char charToPrint);
 void clear_screen();
 int handle_scrolling(int cursor_offset);
+void disable_cursor();
+int get_cursor_row();
+int get_cursor_col();

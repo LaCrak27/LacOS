@@ -4,7 +4,7 @@ print_string:
     jmp print_char
     
 print_char:
-    mov dx, [bx]
+    mov dx, [bx] ; Load character from memory adress indicated by BX
     cmp dl, 0 ; Check if the last character is null
     je end_print_string
     mov al, dl ; Move the character into the a register

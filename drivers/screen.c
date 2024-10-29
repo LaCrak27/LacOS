@@ -1,7 +1,14 @@
 #include "screen.h"
 #include "../kernel/low_level.h"
 #include "../kernel/util.h"
-//TODO: Make \n use a separate function as well
+
+void disable_cursor()
+{
+    // Disable Cursor
+    pByteOut(0x3D4, 0x0A);
+    pByteOut(0x3D5, 0x20);
+}
+
 void erase_char()
 {
     unsigned char *vidmem = (unsigned char *)VIDEO_ADRESS;
@@ -30,6 +37,11 @@ void print_char(char character, int col, int row, char attribute_byte)
     else
     {
         offset = get_cursor();
+    }
+    if (character == '\b')
+    {
+        erase_char();
+        return;
     }
     if (character == '\n')
     {
@@ -61,6 +73,18 @@ int get_cursor()
     pByteOut(REG_SCREEN_CTRL, 15);
     offset += pByteIn(REG_SCREEN_DATA);
     return offset * 2; // Multiply it by 2 to get the memory adress.
+}
+
+int get_cursor_row()
+{
+    int cursor = get_cursor() / 2;
+    return cursor / MAX_COLS;
+}
+
+int get_cursor_col()
+{
+    int cursor = get_cursor() / 2;
+    return cursor % MAX_COLS;
 }
 
 void set_cursor(int offset)

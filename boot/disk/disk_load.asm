@@ -17,18 +17,7 @@ disk_load:
     ret
 
 disk_error:
-    mov bx, DISK_ERROR_MSG
-    call print_string
     jmp $
 
 disk_check:
-    mov bx, DISK_CHECK_MSG
-    call print_string
     jmp $
-
-
-DISK_ERROR_MSG: 
-    db "System halted, disk read error, please restart and try again", 0
-
-DISK_CHECK_MSG: 
-    db "System halted, disk read error (number of bytes different), please restart and try again", 0

@@ -138,9 +138,7 @@ void isr_handler(struct InterruptRegisters *regs)
     {
         println("UNHANDLED EXCEPTION!!! SYSTEM HALTED!!!");
         println((exception_messages[regs->int_no]));
-        // Disable Cursor
-        pByteOut(0x3D4, 0x0A);
-        pByteOut(0x3D5, 0x20);
+        disable_cursor();
         for (;;)
             ;
     }
