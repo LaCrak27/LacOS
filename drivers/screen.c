@@ -149,7 +149,7 @@ int handle_scrolling(int cursor_offset)
     int i;
     for (i = 1; i < MAX_ROWS; i++)
     {
-        memCopy((char *)(get_screen_offset(0, i) + VIDEO_ADRESS),
+        memcpy((char *)(get_screen_offset(0, i) + VIDEO_ADRESS),
                 (char *)(get_screen_offset(0, i - 1) + VIDEO_ADRESS),
                 MAX_COLS * 2);
     }

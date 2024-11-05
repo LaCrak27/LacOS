@@ -3,6 +3,7 @@ OBJ = ${C_SOURCES:.c=.o}
 SOBJ = ${ASM_SOURCES:.asm=.o}
 HEADERS = $(wildcard kernel/*.h drivers/*.h interrupts/*.h)
 ASM_SOURCES = $(wildcard interrupts/*.asm)
+
 all: clean LacOS.img LacOS.iso
 debug: clean LacOS.bin
 	bochsdbg.exe -f debug.bxrc -q

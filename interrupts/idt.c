@@ -12,7 +12,7 @@ void initIdt()
 {
     idtPtr.limit = sizeof(struct IdtEntryStruct) * 256 - 1;
     idtPtr.base = (unsigned long)&idtEntries;
-    memSet(&idtEntries, 0, sizeof(struct IdtEntryStruct) * 256);
+    memset(&idtEntries, 0, sizeof(struct IdtEntryStruct) * 256);
 
     // (There are 2 PICs)
     // 0x20 commands & 0x21 data

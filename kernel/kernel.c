@@ -13,7 +13,9 @@ void main()
     initKeyboard();
     unsigned char* magicNumberPointer = (char*) 0x1000;
     if(*magicNumberPointer == 0x69) {
-        printMemoryMap();
+        initmm();
+        print("Press any key to start shell...");
+        readKey();
     }
     else
     {

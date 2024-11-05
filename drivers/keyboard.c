@@ -2,6 +2,8 @@
 #include "../kernel/low_level.h"
 #include "screen.h"
 
+typedef struct InterruptRegisters InterruptRegisters;
+
 void onKeyPress(char scanCode, char press);
 
 const unsigned long UNKNOWN = 0xFFFFFFFF;
@@ -73,8 +75,8 @@ char readKey()
     return readChar;
 }
 
-void keyboardHandler(struct InterruptRegisters *regs){
-
+void keyboardHandler(InterruptRegisters *regs)
+{
     char scanCode = pByteIn(0x60) & 0x7F; //What key is pressed
     char press = pByteIn(0x60) & 0x80; //Press down, or released
 

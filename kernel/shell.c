@@ -1,12 +1,13 @@
 #include "../drivers/screen.h"
 #include "./util.h"
-#include "../interrupts/idt.h"
 #include "../drivers/keyboard.h"
 
 char processCommand = 0;
 char shellActive = 1;
 void initShell()
 {
+    clear_screen();
+    int currentLineLenght = 0;
     println("Shell started correctly!");
     print("$>");
     while (!processCommand)
@@ -24,7 +25,14 @@ void initShell()
             {
                 continue;
             }
+            currentLineLenght--;
+            printc('\b');
+            continue;
         }
-        printc(pressedKey);
+        if(currentLineLenght <= 76)
+        {
+            printc(pressedKey);
+            currentLineLenght++;
+        }
     }
 }
