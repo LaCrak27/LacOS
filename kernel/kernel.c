@@ -3,6 +3,7 @@
 #include "./shell.h"
 #include "../interrupts/idt.h"
 #include "../drivers/keyboard.h"
+#include "./debug.h"
 
 void main()
 {
@@ -11,8 +12,9 @@ void main()
     println("(c) LaCrak27 2023-2024. No rights reserved.");
     initIdt();
     initKeyboard();
-    unsigned char* magicNumberPointer = (char*) 0x1000;
-    if(*magicNumberPointer == 0x69) {
+    unsigned char *magicNumberPointer = (char *)0x1000;
+    if (*magicNumberPointer == 0x69)
+    {
         initmm();
         print("Press any key to start shell...");
         readKey();
@@ -21,15 +23,10 @@ void main()
     {
         println("Magic byte check failed, bootloader could not find out memory map. Halting...");
         disable_cursor();
-        while (1)
-        {
-            /* Halted */
-        }
+        for (;;)
+        ;
     }
     initShell();
-    while (1)
-    {
-        // Hang as we should never get here;
-    }
+    for (;;)
+        ;
 }
-

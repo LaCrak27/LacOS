@@ -1,10 +1,12 @@
 #define NULL 0
+#define TRUE 1
+#define FALSE 0
 void initmm();
 void *malloc(unsigned long blockLenghth);
 void free(void *ptr);
 void *realloc(void *ptr, unsigned long newLenght);
-void memcpy(char *source, char *dest, int no_bytes);
-void memset(void *dest, char val, unsigned long count);
+void memcpy(char *source, char *dest, int n);
+void memset(void *dest, char val, unsigned long n);
 char *uitoh(unsigned long i);
 char *itoa(long i);
 char *uitoa(unsigned long i);

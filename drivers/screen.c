@@ -2,6 +2,8 @@
 #include "../kernel/low_level.h"
 #include "../kernel/util.h"
 
+
+int lastOffset = 0;
 void disable_cursor()
 {
     // Disable Cursor

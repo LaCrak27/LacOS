@@ -1,24 +1,39 @@
 #include "../drivers/screen.h"
 #include "./util.h"
 #include "../drivers/keyboard.h"
+char *readLine();
+char **splitLine(char *line);
 
-char processCommand = 0;
-char shellActive = 1;
 void initShell()
 {
     clear_screen();
-    int currentLineLenght = 0;
     println("Shell started correctly!");
-    print("$>");
-    while (!processCommand)
+    char *line;
+    char **args;
+    int status;
+    while (1)
+    {
+        print("$>");
+        line = readLine();
+        if (line[0] != 0) // If line is not null
+        {
+            print("Command '");
+            print(line);
+            println("' not found.");
+        }
+
+        free(line);
+    }
+}
+
+char *readLine()
+{
+    int currentLineLenght = 0;
+    char *lineContent = (char *)malloc(sizeof(char) * 77); // Allocate one line worth of data
+    memset(lineContent, 0, 77 * sizeof(char));             // Clear buffer memory
+    while (1)
     {
         char pressedKey = readKey();
-        if (pressedKey == '\n')
-        {
-            printc('\n');
-            print("$>");
-            continue;
-        }
         if (pressedKey == '\b')
         {
             if (get_cursor_col() <= 2) // 0-indexed
@@ -26,13 +41,48 @@ void initShell()
                 continue;
             }
             currentLineLenght--;
+            lineContent[currentLineLenght] = 0;
             printc('\b');
             continue;
         }
-        if(currentLineLenght <= 76)
+        if (pressedKey == '\n')
+        {
+            printc('\n');
+            return lineContent;
+        }
+        if (currentLineLenght < 77)
         {
             printc(pressedKey);
+            lineContent[currentLineLenght] = pressedKey;
             currentLineLenght++;
         }
     }
+}
+
+char **splitLine(char *line)
+{
+    int numberOfWords = 0;
+    int i = 0;
+    while (1)
+    {
+        if(line[i] == 0) // If we've hit EOL (End Of Line)
+        {
+            break;
+        }
+        if (line[i] == ' ')
+        {
+            numberOfWords++;
+        }
+        i++;
+    }
+    char **args = (char**)malloc(sizeof(char*) * numberOfWords);
+    char *currentWord = malloc(sizeof(char) * 76);
+    while (1)
+    {
+        if(line[i] == 0)
+        {
+            break;
+        }
+    }
+    
 }

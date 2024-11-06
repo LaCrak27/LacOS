@@ -1,2 +1,4 @@
-# TO BE DONE
-For now, for running the os, clone repo, run make and run the LacOS.bin in an qemu as a floppy (or any other vm for that matter) (if you plug it in a real pc you may lose data) :)
+# Running the OS
+To build the OS using the provided makefile, a linux enviroment is the required, be it native or wsl. 
+
+It should be noted that `make start` and `make debug` will only work if called from wsl in a windows machine since they open the `.exe`s directly (you can just edit them and remove the `.exe` part on linux).

@@ -1,7 +1,5 @@
 ; SOURCE: https://wiki.osdev.org/Detecting_Memory_(x86)#Getting_an_E820_Memory_Map
 ; use the INT 0x15, eax= 0xE820 BIOS function to get a memory map
-; note: initially di is 0, be sure to set it to a value so that the BIOS code will not be overwritten. 
-;       The consequence of overwriting the BIOS code will lead to problems like getting stuck in `int 0x15`
 ; inputs: es:di -> destination buffer for 24 byte entries
 ; outputs: bp = entry count, trashes all registers except esi
 [bits 16]

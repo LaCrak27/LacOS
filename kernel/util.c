@@ -1,5 +1,6 @@
 #include "util.h"
 #include "../drivers/screen.h"
+
 // Memory manager stuff
 // HOW IT WORKS (first fit):
 // The idea that I've got for the memory manager, it will work as some sort of linked list, with linked
@@ -28,6 +29,7 @@ static unsigned long long memSize = 0;
 static unsigned long long memStartAdress = 0;
 static char memoryInitialized = 0;
 
+// Initializes memory manager, should only be ran once by the kernel at startup.
 void initmm()
 {
     int entryIndex = 0;
@@ -57,6 +59,7 @@ void initmm()
     memoryInitialized = 1;
 }
 
+// Writes a header corresponding to a memory block in the given adress
 void writeHeader(MemoryBlockHeader *adress, unsigned char isFree, unsigned long blockSize, MemoryBlockHeader *previousBlockAdress, MemoryBlockHeader *nextBlockAdress)
 {
     adress->isBlockFree = isFree;
@@ -65,7 +68,9 @@ void writeHeader(MemoryBlockHeader *adress, unsigned char isFree, unsigned long 
     adress->nextBlockAdress = nextBlockAdress;
 }
 
-// Memory returned may be garbage
+// Allocates blockLength bytes of memory, returning a void pointer to it.
+// Keep in mind the contents of the memory returned may be garbage.
+// Returns a NULL pointer on failure.
 void *malloc(unsigned long blockLenghth)
 {
     MemoryBlockHeader *blockPointer = (MemoryBlockHeader *)(unsigned long)memStartAdress;
@@ -99,24 +104,29 @@ void *malloc(unsigned long blockLenghth)
         }
     }
     // End of block would land outside of usable memory, return null
-    if ((void *)((char *)blockPointer + sizeof(MemoryBlockHeader)) > (void*)(unsigned long)(memStartAdress + memSize - blockLenghth))
+    if ((void *)((char *)blockPointer + sizeof(MemoryBlockHeader)) > (void *)(unsigned long)(memStartAdress + memSize - blockLenghth))
     {
         return NULL;
     }
     return (void *)((char *)blockPointer + sizeof(MemoryBlockHeader));
 }
 
+// Frees block pointed to by ptr.
 void free(void *ptr)
 {
     MemoryBlockHeader *blockPtr = (MemoryBlockHeader *)((char *)ptr - sizeof(MemoryBlockHeader)); // Get pointer to header instead of content
-    blockPtr->isBlockFree = 1;
+    if(blockPtr->isBlockFree == 0)
+    {
+        blockPtr->isBlockFree = 1;
+    }
     return;
 }
 
+// Reallocates provided block (ptr) with a new size (blockSize).
 void *realloc(void *ptr, unsigned long blockSize)
 {
     void *newPtr = malloc(blockSize);
-    if (newPtr != NULL)
+    if (newPtr != NULL) // Only free memory
     {
         memcpy(ptr, newPtr, blockSize); // Copy contents
         free(ptr);
@@ -126,28 +136,41 @@ void *realloc(void *ptr, unsigned long blockSize)
 
 // Other memory stuff
 
-void memcpy(char *source, char *dest, int no_bytes)
+// Copies n bytes from source to dest.
+void memcpy(char *source, char *dest, int n)
 {
     int i;
-    for (i = 0; i < no_bytes; i++)
+    for (i = 0; i < n; i++)
     {
         *(dest + i) = *(source + i);
     }
 }
 
-void memset(void *dest, char val, unsigned long count)
+// Sets n consecutives bytes starting at dest to val
+void memset(void *dest, char val, unsigned long n)
 {
     char *temp = (char *)dest;
-    for (; count != 0; count--)
+    for (; n != 0; n--)
     {
         *temp++ = val;
     }
+}
+
+// Str utils
+
+// 1st pass: See how many items there are
+// 2nd pass: Allocate memory and make original array point to it
+char **strsplt(char *str, char delim)
+{
+
 }
 
 // X -> str functions
 
 #define INT_DIGITS 19 // Works until 64bit
 #define UINT_DIGITS 20
+
+// Converts unsigned long to it's hex string representation.
 char *uitoh(unsigned long i)
 {
     static char buf[19];
@@ -169,7 +192,7 @@ char *uitoh(unsigned long i)
     return p;
 }
 
-// Source for itoa and uitoa: apple.com/opensource
+// Converts integer to string of its value.
 char *itoa(long i)
 {
     /* Room for INT_DIGITS digits, - and '\0' */
@@ -196,6 +219,7 @@ char *itoa(long i)
     return p;
 }
 
+// Converts unsigned integer to string of its value.
 char *uitoa(unsigned long i)
 {
     /* Room for UINT_DIGITS digits and '\0' */
