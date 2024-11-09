@@ -4,9 +4,13 @@
 void initmm();
 void *malloc(unsigned long blockLenghth);
 void free(void *ptr);
+void freearr_str(char **ptr);
 void *realloc(void *ptr, unsigned long newLenght);
 void memcpy(char *source, char *dest, int n);
+int strlen(char* str);
 void memset(void *dest, char val, unsigned long n);
+void trim(char *str, char trim);
+char **strsplt(char *str, char delim);
 char *uitoh(unsigned long i);
 char *itoa(long i);
 char *uitoa(unsigned long i);

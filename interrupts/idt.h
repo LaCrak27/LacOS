@@ -28,6 +28,7 @@ void setIdtGate(unsigned char num, unsigned long base, unsigned short sel, unsig
 void isr_handler(struct InterruptRegisters* regs);
 void irqInstallHandler(int irq, void (*handler)(struct InterruptRegisters *r));
 void irqUninstallHandler(int irq);
+void except(char* errorMessage);
 
 extern void isr0();
 extern void isr1();

@@ -2,11 +2,9 @@
 #include "./util.h"
 #include "../drivers/keyboard.h"
 char *readLine();
-char **splitLine(char *line);
 
 void initShell()
 {
-    clear_screen();
     println("Shell started correctly!");
     char *line;
     char **args;
@@ -15,14 +13,15 @@ void initShell()
     {
         print("$>");
         line = readLine();
+        args = strsplt(line, ' ');
         if (line[0] != 0) // If line is not null
         {
             print("Command '");
-            print(line);
+            print(args[0]);
             println("' not found.");
         }
-
         free(line);
+        freearr_str(args);
     }
 }
 
@@ -57,32 +56,4 @@ char *readLine()
             currentLineLenght++;
         }
     }
-}
-
-char **splitLine(char *line)
-{
-    int numberOfWords = 0;
-    int i = 0;
-    while (1)
-    {
-        if(line[i] == 0) // If we've hit EOL (End Of Line)
-        {
-            break;
-        }
-        if (line[i] == ' ')
-        {
-            numberOfWords++;
-        }
-        i++;
-    }
-    char **args = (char**)malloc(sizeof(char*) * numberOfWords);
-    char *currentWord = malloc(sizeof(char) * 76);
-    while (1)
-    {
-        if(line[i] == 0)
-        {
-            break;
-        }
-    }
-    
 }

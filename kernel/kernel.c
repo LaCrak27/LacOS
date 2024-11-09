@@ -14,10 +14,12 @@ void main()
     initKeyboard();
     unsigned char *magicNumberPointer = (char *)0x1000;
     if (*magicNumberPointer == 0x69)
-    {
+    {        
         initmm();
-        print("Press any key to start shell...");
-        readKey();
+        for (int i = 0; i < 9999; i++)
+        {
+            
+        }
     }
     else
     {

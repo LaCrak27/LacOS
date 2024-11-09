@@ -7,6 +7,7 @@ struct IdtEntryStruct idtEntries[256];
 struct IdtPointerStruct idtPtr;
 
 extern void idtFlush(unsigned long x);
+void syshalt(char *errorMessage);
 
 void initIdt()
 {
@@ -136,12 +137,22 @@ void isr_handler(struct InterruptRegisters *regs)
 {
     if (regs->int_no < 32)
     {
-        println("UNHANDLED EXCEPTION!!! SYSTEM HALTED!!!");
-        println((exception_messages[regs->int_no]));
-        disable_cursor();
-        for (;;)
-            ;
+        syshalt((exception_messages[regs->int_no]));
     }
+}
+
+void except(char* errorMessage)
+{
+    syshalt(errorMessage);
+}
+
+void syshalt(char *errorMessage)
+{
+    println("SYSTEM HALTED!!! Error:");
+    print(errorMessage);
+    disable_cursor();
+    for (;;)
+        ;
 }
 
 void *irqRoutines[16] = {

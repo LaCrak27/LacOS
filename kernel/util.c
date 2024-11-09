@@ -1,5 +1,7 @@
 #include "util.h"
 #include "../drivers/screen.h"
+#include "../drivers/keyboard.h"
+#include "../interrupts/idt.h"
 
 // Memory manager stuff
 // HOW IT WORKS (first fit):
@@ -73,10 +75,14 @@ void writeHeader(MemoryBlockHeader *adress, unsigned char isFree, unsigned long 
 // Returns a NULL pointer on failure.
 void *malloc(unsigned long blockLenghth)
 {
+    if(blockLenghth == 0 || blockLenghth > memSize)
+    {
+        return NULL;
+    }
     MemoryBlockHeader *blockPointer = (MemoryBlockHeader *)(unsigned long)memStartAdress;
     while (1)
     {
-        if (blockPointer->isBlockFree == 1 && blockPointer->blockSize >= blockLenghth) // The block is free and big enough!
+        if (blockPointer->isBlockFree == 1 && blockPointer->blockSize > blockLenghth + sizeof(MemoryBlockHeader)) // The block is free and big enough!
         {
             blockPointer->isBlockFree = 0;
             MemoryBlockHeader *nextBlock = (MemoryBlockHeader *)((char *)blockPointer + blockLenghth + sizeof(MemoryBlockHeader)); // Points to start of next block
@@ -115,10 +121,23 @@ void *malloc(unsigned long blockLenghth)
 void free(void *ptr)
 {
     MemoryBlockHeader *blockPtr = (MemoryBlockHeader *)((char *)ptr - sizeof(MemoryBlockHeader)); // Get pointer to header instead of content
-    if(blockPtr->isBlockFree == 0)
+    if (blockPtr->isBlockFree == 0)
     {
         blockPtr->isBlockFree = 1;
     }
+    return;
+}
+
+// Frees a null terminated pointer array of strings recursively
+void freearr_str(char **ptr)
+{
+    int i = 0;
+    while (ptr[i] != 0)
+    {
+        free(ptr[i]);
+        i++;
+    }
+    free(ptr);
     return;
 }
 
@@ -158,11 +177,97 @@ void memset(void *dest, char val, unsigned long n)
 
 // Str utils
 
-// 1st pass: See how many items there are
-// 2nd pass: Allocate memory and make original array point to it
+int strlen(char *str)
+{
+    int i = 0;
+    while (str[i] != 0)
+    {
+        i++;
+    }
+    return i;
+}
+
+// Trims instances of trim char at the start and end of str
+void trim(char *str, char trim)
+{
+    int len = strlen(str);
+    int i = 0;
+    while (str[i] == trim)
+    {
+        i++;
+    }
+    memcpy(str + i, str, len - i + 1); // Remove leading characters by shifting the whole string
+    i = len - i - 1;                   // Make i point to last char
+    while (str[i] == trim)             // Remove trailing chars
+    {
+        str[i] = 0;
+        i--;
+    }
+}
+
+// Returns an array of strings that contains the different parts of the string that str has,
+// delimeted by delim.
 char **strsplt(char *str, char delim)
 {
-
+    trim(str, delim);
+    int elementCount = 1; // Amount of elements
+    int i = 0;            // String index
+    while (str[i] != 0)
+    {
+        if (str[i] == delim)
+        {
+            elementCount++;
+        }
+        i++;
+    }
+    char *buffer = malloc(i + 1 * sizeof(char)); // Buffer to hold current element
+    if (!buffer)
+    {
+        except("Error allocating buffer");
+    }
+    char **res = (char **)malloc((elementCount + 1) * sizeof(char *)); // Array of strings to return
+    if (!res)
+    {
+        except("Error allocating res array");
+    }
+    res[elementCount] = NULL;
+    int currentElement = 0; // Current element index
+    int currentSize = 0;    // Current element size
+    i = 0;
+    int j = 0; // Segment index
+    while (str[i] != 0)
+    {
+        if (str[i] == delim)
+        {
+            res[currentElement] = (char *)malloc(sizeof(char) * (currentSize + 1));
+            if (!res[currentElement])
+            {
+                except("Error allocating element");
+            }
+            memcpy(buffer, res[currentElement], currentSize); // Store segment
+            res[currentElement][currentSize + 1] = NULL;      // Add null terminator
+            currentElement++;
+            currentSize = 0;
+            j = 0;
+        }
+        else
+        {
+            buffer[j] = str[i];
+            currentSize++;
+            j++;
+        }
+        i++;
+    }
+    // Write last segment on end
+    res[currentElement] = (char *)malloc(sizeof(char) * (currentSize + 1));
+    if (!res[currentElement])
+    {
+        except("Error allocating element");
+    }
+    memcpy(buffer, res[currentElement], currentSize); // Store segment
+    res[currentElement][currentSize] = NULL;          // Add null terminator
+    free(buffer);
+    return res;
 }
 
 // X -> str functions
