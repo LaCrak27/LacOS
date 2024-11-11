@@ -16,10 +16,6 @@ void main()
     if (*magicNumberPointer == 0x69)
     {        
         initmm();
-        for (int i = 0; i < 9999; i++)
-        {
-            
-        }
     }
     else
     {

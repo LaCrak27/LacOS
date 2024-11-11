@@ -141,7 +141,7 @@ void isr_handler(struct InterruptRegisters *regs)
     }
 }
 
-void except(char* errorMessage)
+void except_intern(char* errorMessage)
 {
     syshalt(errorMessage);
 }

@@ -3,6 +3,11 @@
 #include "../drivers/keyboard.h"
 #include "../interrupts/idt.h"
 
+void except(char *msg)
+{
+    except_intern(msg);
+}
+
 // Memory manager stuff
 // HOW IT WORKS (first fit):
 // The idea that I've got for the memory manager, it will work as some sort of linked list, with linked
@@ -64,6 +69,7 @@ void initmm()
 // Writes a header corresponding to a memory block in the given adress
 void writeHeader(MemoryBlockHeader *adress, unsigned char isFree, unsigned long blockSize, MemoryBlockHeader *previousBlockAdress, MemoryBlockHeader *nextBlockAdress)
 {
+    adress->magicNumber = 0x69;
     adress->isBlockFree = isFree;
     adress->blockSize = blockSize;
     adress->previousBlockAdress = previousBlockAdress;
@@ -82,15 +88,14 @@ void *malloc(unsigned long blockLenghth)
     MemoryBlockHeader *blockPointer = (MemoryBlockHeader *)(unsigned long)memStartAdress;
     while (1)
     {
-        if (blockPointer->isBlockFree == 1 && blockPointer->blockSize > blockLenghth + sizeof(MemoryBlockHeader)) // The block is free and big enough!
+        if(blockPointer->magicNumber != 0x69)
+        {
+            except("Weird things have happened");
+        }
+        // The block is free and big enough!
+        if (blockPointer->isBlockFree == 1 && blockPointer->blockSize > blockLenghth + sizeof(MemoryBlockHeader))
         {
             blockPointer->isBlockFree = 0;
-            MemoryBlockHeader *nextBlock = (MemoryBlockHeader *)((char *)blockPointer + blockLenghth + sizeof(MemoryBlockHeader)); // Points to start of next block
-            nextBlock->blockSize = blockPointer->blockSize - blockLenghth - sizeof(MemoryBlockHeader);
-            nextBlock->isBlockFree = 1;
-            nextBlock->nextBlockAdress = blockPointer->nextBlockAdress;
-            nextBlock->previousBlockAdress = blockPointer;
-            blockPointer->nextBlockAdress = nextBlock;
             break;
         }
         else if (blockPointer->nextBlockAdress == 0) // There's no next block, create one
@@ -100,11 +105,12 @@ void *malloc(unsigned long blockLenghth)
             newBlockPointer->isBlockFree = 0;
             newBlockPointer->nextBlockAdress = 0;
             newBlockPointer->previousBlockAdress = blockPointer;
+            newBlockPointer->magicNumber = 0x69;
             blockPointer->nextBlockAdress = newBlockPointer;
             blockPointer = newBlockPointer;
             break;
         }
-        else // There is a next block, and the current one isn't big enough or occupied
+        else if(blockPointer->magicNumber == 0x69) // There is a next block, and the current one isn't big enough or occupied
         {
             blockPointer = blockPointer->nextBlockAdress; // Go to next block lol
         }
@@ -121,6 +127,12 @@ void *malloc(unsigned long blockLenghth)
 void free(void *ptr)
 {
     MemoryBlockHeader *blockPtr = (MemoryBlockHeader *)((char *)ptr - sizeof(MemoryBlockHeader)); // Get pointer to header instead of content
+    
+    if(blockPtr->magicNumber != 0x69)
+    {
+        except("Free called on an invalid adress.");
+    }
+
     if (blockPtr->isBlockFree == 0)
     {
         blockPtr->isBlockFree = 1;
@@ -203,6 +215,24 @@ void trim(char *str, char trim)
         str[i] = 0;
         i--;
     }
+}
+
+int strcmp(char *str1, char *str2)
+{
+    int len1 = strlen(str1);
+    int len2 = strlen(str2); 
+    if(len1 != len2)
+    {
+        return 0;
+    }
+    for(int i = 0; i < len1; i++)
+    {
+        if(str1[i] != str2[i])
+        {
+            return 0;
+        }
+    }
+    return 1;
 }
 
 // Returns an array of strings that contains the different parts of the string that str has,
@@ -336,4 +366,43 @@ char *uitoa(unsigned long i)
         i /= 10;
     } while (i != 0);
     return p;
+}
+
+// Int utils
+
+int max(int a, int b)
+{
+    if(a > b)
+    {
+        return a;
+    }
+    else
+    {
+        return b;
+    }
+}
+
+int min(int a, int b)
+{
+    if(a < b)
+    {
+        return a;
+    }
+    else
+    {
+        return b;
+    }
+}
+
+// Arr utils
+
+// Gets lenght of a null terminated array of pointers
+int arrlen(void **arr)
+{
+    int i = 0;
+    while(arr[i] != NULL)
+    {
+        i++;
+    }
+    return i;
 }
