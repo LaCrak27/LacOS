@@ -19,12 +19,10 @@ void main()
     }
     else
     {
-        println("Magic byte check failed, bootloader could not find out memory map. Halting...");
-        disable_cursor();
-        for (;;)
-        ;
+        except("Magic byte check failed, bootloader could not find out memory map. Halting...");
     }
-    initShell();
-    for (;;)
-        ;
+    while (1) // Loop in case we exit shell somehow
+    {
+        initShell();
+    }
 }

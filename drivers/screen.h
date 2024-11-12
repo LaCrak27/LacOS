@@ -1,12 +1,30 @@
 #define VIDEO_ADRESS 0xb8000
 #define MAX_ROWS 25
 #define MAX_COLS 80
-//Color scheme, can be changed ig
-#define WHITE_ON_BLACK 0x0f
+//Color schemes
+#define BLACK 0
+#define BLUE 1
+#define GREEN 2
+#define CYAN 3
+#define RED 4
+#define PURPLE 5
+#define BROWN 6
+#define GRAY 7
+#define DARK_GRAY 8
+#define LIGHT_BLUE 9
+#define LIGHT_GREEN 10
+#define LIGHT_CYAN 11
+#define LIGHT_RED 12
+#define LIGHT_PURPLE 13
+#define YELLOW 14
+#define WHITE 15
 //Screen I/O ports
 #define REG_SCREEN_CTRL 0x3D4
 #define REG_SCREEN_DATA 0x3D5
-void print_char(char character, int col, int row, char attribute_byte);
+void set_fg(unsigned char fgVal);
+void set_bg(unsigned char bgVal);
+void set_attr_byte(unsigned char attrByte);
+void print_char(char character, int col, int row);
 void erase_char();
 int get_screen_offset(int colums, int rows);
 int get_cursor();

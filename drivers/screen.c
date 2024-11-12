@@ -2,6 +2,24 @@
 #include "../kernel/low_level.h"
 #include "../kernel/util.h"
 
+unsigned char attribute_byte = 0x07;
+// Sets the foreground text color
+void set_fg(unsigned char fgVal)
+{
+    attribute_byte &= 0xF0;
+    attribute_byte |= fgVal;
+}
+// Sets the background text color
+void set_bg(unsigned char bgVal)
+{
+    attribute_byte &= 0x0F;
+    attribute_byte |= bgVal << 4;
+}
+// Sets the whole attribute byte
+void set_attr_byte(unsigned char attrByte)
+{
+    attribute_byte = attrByte;
+}
 
 int lastOffset = 0;
 void disable_cursor()
@@ -18,19 +36,15 @@ void erase_char()
     offset = get_cursor();
     offset = offset -= 2;
     vidmem[offset] = ' ';
-    vidmem[offset + 1] = WHITE_ON_BLACK;
+    vidmem[offset + 1] = attribute_byte;
     set_cursor(offset);
 }
 
 // Prints a character on the screen at a certain position or at the cursor's pos
-void print_char(char character, int col, int row, char attribute_byte)
+void print_char(char character, int col, int row)
 {
     // Pointer that starts at the beggining of video memory
     unsigned char *vidmem = (unsigned char *)VIDEO_ADRESS;
-    if (!attribute_byte) // If it is 0x00
-    {
-        attribute_byte = WHITE_ON_BLACK;
-    }
     int offset;
     if (col >= 0 && row >= 0)
     {
@@ -107,7 +121,7 @@ void print_at(char *message, int col, int row)
     int i = 0;
     while (message[i] != 0)
     {
-        print_char(message[i++], col, row, WHITE_ON_BLACK);
+        print_char(message[i++], col, row);
     }
 }
 
@@ -124,7 +138,7 @@ void println(char *message)
 
 void printc(char charToPrint)
 {
-    print_char(charToPrint, -1, -1, WHITE_ON_BLACK);
+    print_char(charToPrint, -1, -1);
 }
 
 void clear_screen()
@@ -135,7 +149,7 @@ void clear_screen()
     {
         for (col = 0; col < MAX_COLS; col++)
         {
-            print_char(' ', col, row, WHITE_ON_BLACK);
+            print_char(' ', col, row);
         }
     }
     set_cursor(get_screen_offset(0, 0));
@@ -157,9 +171,10 @@ int handle_scrolling(int cursor_offset)
     }
     // Blank the last line
     char *last_line = (char *)(get_screen_offset(0, MAX_ROWS - 1) + VIDEO_ADRESS);
-    for (i = 0; i < MAX_COLS * 2; i++)
+    for (i = 0; i < MAX_COLS * 2; i+=2)
     {
-        last_line[i] = 0;
+        last_line[i] = ' ';
+        last_line[i+1] = attribute_byte;
     }
     // Generate new offset
     cursor_offset -= 2 * MAX_COLS;

@@ -275,7 +275,7 @@ char **strsplt(char *str, char delim)
                 except("Error allocating element");
             }
             memcpy(buffer, res[currentElement], currentSize); // Store segment
-            res[currentElement][currentSize + 1] = NULL;      // Add null terminator
+            res[currentElement][currentSize] = NULL;      // Add null terminator
             currentElement++;
             currentSize = 0;
             j = 0;

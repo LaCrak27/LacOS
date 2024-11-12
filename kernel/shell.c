@@ -5,14 +5,23 @@
 char *readLine();
 int execLine(int argc, char **argv);
 int sh_cls(int argc, char **argv);
+int sh_setfg(int argc, char **argv);
+int sh_setbg(int argc, char **argv);
+int sh_hlp(int argc, char **argv);
 
 char *builtin_cmds[] = {
     "clear",
+    "setfg",
+    "setbg",
+    "help",
     NULL
 };
 
 int (*builtin_func[]) (int, char **) = {
-  &sh_cls
+    &sh_cls,
+    &sh_setfg,
+    &sh_setbg,
+    &sh_hlp,
 };
 
 void initShell()
@@ -97,5 +106,86 @@ int execLine(int argc, char **argv)
 int sh_cls(int argc, char **argv)
 {
     clear_screen();
+    return 0;
+}
+
+char *colors[] = {
+    "black",
+    "blue",
+    "green",
+    "cyan",
+    "red",
+    "purple",
+    "brown",
+    "gray",
+    "darkgray",
+    "lightblue",
+    "lightgreen",
+    "lightcyan",
+    "lightred",
+    "lightpurple",
+    "yellow",
+    "white"
+};
+
+int sh_setfg(int argc, char **argv)
+{
+    if(argc != 2)
+    {
+        println("Incorrect usage. Correct usage is 'setfg <color>', where <color> can be:\nblack\nblue\ngreen\ncyan\nred\npurple\nbrown\ngray\ndarkgray\nlightblue\nlightgreen\nlightcyan\nlightred\nlightpurple\nyellow\nwhite");
+        return 1;
+    }
+    for (char i = 0; i < 16; i++)
+    {
+        if(strcmp(argv[1], colors[i]))
+        {
+            set_fg(i);
+            print("Foreground succesfully set to ");
+            print(argv[1]);
+            print("(");
+            print(itoa(i));
+            print(")");
+            println(".");
+            return 0;
+        }
+    }
+    println("Incorrect usage. Correct usage is 'setfg <color>', where <color> can be:\nblack\nblue\ngreen\ncyan\nred\npurple\nbrown\ngray\ndarkgray\nlightblue\nlightgreen\nlightcyan\nlightred\nlightpurple\nyellow\nwhite");
+    return 1;
+}
+
+int sh_setbg(int argc, char **argv)
+{
+    if(argc != 2)
+    {
+        println("Incorrect usage. Correct usage is 'setbg <color>', where <color> can be:\nblack\nblue\ngreen\ncyan\nred\npurple\nbrown\ngray\ndarkgray\nlightblue\nlightgreen\nlightcyan\nlightred\nlightpurple\nyellow\nwhite");
+        return 1;
+    }
+    for (char i = 0; i < 16; i++)
+    {
+        if(strcmp(argv[1], colors[i]))
+        {
+            set_bg(i);
+            print("Background succesfully set to ");
+            print(argv[1]);
+            print("(");
+            print(itoa(i));
+            print(")");
+            println(".");
+            return 0;
+        }
+    }
+    println("Incorrect usage. Correct usage is 'setbg <color>', where <color> can be:\nblack\nblue\ngreen\ncyan\nred\npurple\nbrown\ngray\ndarkgray\nlightblue\nlightgreen\nlightcyan\nlightred\nlightpurple\nyellow\nwhite");
+    return 1;
+}
+
+int sh_hlp(int argc, char **argv)
+{
+    println("Welcome to LacOS! For now, this is a very very simple operating system, with just this shell and not much more, there are plans to integrate more things in the future (like the FAT filesystem and a cross compiler).\nHere are the builtin commands:");
+    int i = 0;
+    while (builtin_cmds[i] != NULL)
+    {
+        println(builtin_cmds[i]);
+        i++;
+    }
     return 0;
 }
