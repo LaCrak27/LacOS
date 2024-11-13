@@ -1,5 +1,6 @@
 #include "../drivers/screen.h"
 #include "./util.h"
+#include "./memory.h"
 #include "./shell.h"
 #include "../interrupts/idt.h"
 #include "../drivers/keyboard.h"

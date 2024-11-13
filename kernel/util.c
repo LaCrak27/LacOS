@@ -1,4 +1,5 @@
 #include "util.h"
+#include "memory.h"
 #include "../drivers/screen.h"
 #include "../drivers/keyboard.h"
 #include "../interrupts/idt.h"
@@ -8,164 +9,7 @@ void except(char *msg)
     except_intern(msg);
 }
 
-// Memory manager stuff
-// HOW IT WORKS (first fit):
-// The idea that I've got for the memory manager, it will work as some sort of linked list, with linked
-// used blocks. The idea is to have a header with every block, with a bunch of fields like size, status, etc.
-// One of the fields will be an adress to the next block, and an adress to the previous block, so that we can
-// navigate all the free blocks.
-
-// We will need to defrag eventually when the memory gets full, which will take a long time.
-
-// (you can check the header struct in the header file for this)
-// The header will have this information: notation -> <nameOfField>(sizeInBits)
-// <isBlockFree>(8)|<blockSizeInBytes>(32)|<previousBlockAdress>(32)|<nextBlockAdress>(32)
-
-// There's always gonna be a block at the memory start adress pointing to the next adress after it
-
-// Private function, types and variable declarations:
-
-typedef struct MemoryBlockHeader MemoryBlockHeader;
-void writeHeader(struct MemoryBlockHeader *adress,
-                 unsigned char isFree,
-                 unsigned long blockSize,
-                 MemoryBlockHeader *previousBlockAdress,
-                 MemoryBlockHeader *nextBlockAdress);
-
-static unsigned long long memSize = 0;
-static unsigned long long memStartAdress = 0;
-static char memoryInitialized = 0;
-
-// Initializes memory manager, should only be ran once by the kernel at startup.
-void initmm()
-{
-    int entryIndex = 0;
-    unsigned char *mapPointer = (char *)0x1001;
-    struct MapEntryStruct *structPointer = (struct MapEntryStruct *)0x1002;
-    for (int i = 0; i < *mapPointer; i++) // Once for each entry:
-    {
-        if (structPointer->type == (unsigned long)1) // If entry represents a usable block
-        {
-            if (structPointer->lenght >= memSize) // If it's bigger than the biggest recorded one
-            {
-                memSize = structPointer->lenght;
-                memStartAdress = structPointer->base;
-            }
-        }
-        structPointer++;
-        entryIndex++;
-    }
-    print("Total usable memory size: ");
-    print(uitoa(memSize / 1024));
-    println("kb");
-
-    print("Starting at address: ");
-    println(uitoh(memStartAdress));
-    // Write the base header at start of memory
-    writeHeader((MemoryBlockHeader *)(unsigned long)memStartAdress, 0, 0, (MemoryBlockHeader *)0, ((MemoryBlockHeader *)0));
-    memoryInitialized = 1;
-}
-
-// Writes a header corresponding to a memory block in the given adress
-void writeHeader(MemoryBlockHeader *adress, unsigned char isFree, unsigned long blockSize, MemoryBlockHeader *previousBlockAdress, MemoryBlockHeader *nextBlockAdress)
-{
-    adress->magicNumber = 0x69;
-    adress->isBlockFree = isFree;
-    adress->blockSize = blockSize;
-    adress->previousBlockAdress = previousBlockAdress;
-    adress->nextBlockAdress = nextBlockAdress;
-}
-
-// Allocates blockLength bytes of memory, returning a void pointer to it.
-// Keep in mind the contents of the memory returned may be garbage.
-// Returns a NULL pointer on failure.
-void *malloc(unsigned long blockLenghth)
-{
-    if(blockLenghth == 0 || blockLenghth > memSize)
-    {
-        return NULL;
-    }
-    MemoryBlockHeader *blockPointer = (MemoryBlockHeader *)(unsigned long)memStartAdress;
-    while (1)
-    {
-        if(blockPointer->magicNumber != 0x69)
-        {
-            except("Weird things have happened");
-        }
-        // The block is free and big enough!
-        if (blockPointer->isBlockFree == 1 && blockPointer->blockSize > blockLenghth + sizeof(MemoryBlockHeader))
-        {
-            blockPointer->isBlockFree = 0;
-            break;
-        }
-        else if (blockPointer->nextBlockAdress == 0) // There's no next block, create one
-        {
-            MemoryBlockHeader *newBlockPointer = (MemoryBlockHeader *)((char *)blockPointer + blockPointer->blockSize + sizeof(MemoryBlockHeader));
-            newBlockPointer->blockSize = blockLenghth;
-            newBlockPointer->isBlockFree = 0;
-            newBlockPointer->nextBlockAdress = 0;
-            newBlockPointer->previousBlockAdress = blockPointer;
-            newBlockPointer->magicNumber = 0x69;
-            blockPointer->nextBlockAdress = newBlockPointer;
-            blockPointer = newBlockPointer;
-            break;
-        }
-        else if(blockPointer->magicNumber == 0x69) // There is a next block, and the current one isn't big enough or occupied
-        {
-            blockPointer = blockPointer->nextBlockAdress; // Go to next block lol
-        }
-    }
-    // End of block would land outside of usable memory, return null
-    if ((void *)((char *)blockPointer + sizeof(MemoryBlockHeader)) > (void *)(unsigned long)(memStartAdress + memSize - blockLenghth))
-    {
-        return NULL;
-    }
-    return (void *)((char *)blockPointer + sizeof(MemoryBlockHeader));
-}
-
-// Frees block pointed to by ptr.
-void free(void *ptr)
-{
-    MemoryBlockHeader *blockPtr = (MemoryBlockHeader *)((char *)ptr - sizeof(MemoryBlockHeader)); // Get pointer to header instead of content
-    
-    if(blockPtr->magicNumber != 0x69)
-    {
-        except("Free called on an invalid adress.");
-    }
-
-    if (blockPtr->isBlockFree == 0)
-    {
-        blockPtr->isBlockFree = 1;
-    }
-    return;
-}
-
-// Frees a null terminated pointer array of strings recursively
-void freearr_str(char **ptr)
-{
-    int i = 0;
-    while (ptr[i] != 0)
-    {
-        free(ptr[i]);
-        i++;
-    }
-    free(ptr);
-    return;
-}
-
-// Reallocates provided block (ptr) with a new size (blockSize).
-void *realloc(void *ptr, unsigned long blockSize)
-{
-    void *newPtr = malloc(blockSize);
-    if (newPtr != NULL) // Only free memory
-    {
-        memcpy(ptr, newPtr, blockSize); // Copy contents
-        free(ptr);
-    }
-    return newPtr;
-}
-
-// Other memory stuff
+// Memory stuff
 
 // Copies n bytes from source to dest.
 void memcpy(char *source, char *dest, int n)
@@ -220,14 +64,14 @@ void trim(char *str, char trim)
 int strcmp(char *str1, char *str2)
 {
     int len1 = strlen(str1);
-    int len2 = strlen(str2); 
-    if(len1 != len2)
+    int len2 = strlen(str2);
+    if (len1 != len2)
     {
         return 0;
     }
-    for(int i = 0; i < len1; i++)
+    for (int i = 0; i < len1; i++)
     {
-        if(str1[i] != str2[i])
+        if (str1[i] != str2[i])
         {
             return 0;
         }
@@ -264,7 +108,7 @@ char **strsplt(char *str, char delim)
     int currentElement = 0; // Current element index
     int currentSize = 0;    // Current element size
     i = 0;
-    int j = 0; // Segment index
+    int j = 0;              // Segment index
     while (str[i] != 0)
     {
         if (str[i] == delim)
@@ -275,7 +119,7 @@ char **strsplt(char *str, char delim)
                 except("Error allocating element");
             }
             memcpy(buffer, res[currentElement], currentSize); // Store segment
-            res[currentElement][currentSize] = NULL;      // Add null terminator
+            res[currentElement][currentSize] = NULL;          // Add null terminator
             currentElement++;
             currentSize = 0;
             j = 0;
@@ -306,7 +150,7 @@ char **strsplt(char *str, char delim)
 #define UINT_DIGITS 20
 
 // Converts unsigned long to it's hex string representation.
-char *uitoh(unsigned long i)
+char *uitoh(unsigned int i)
 {
     static char buf[19];
     char *p = buf + 18; // Points to terminating 0
@@ -328,7 +172,7 @@ char *uitoh(unsigned long i)
 }
 
 // Converts integer to string of its value.
-char *itoa(long i)
+char *itoa(int i)
 {
     /* Room for INT_DIGITS digits, - and '\0' */
     static char buf[INT_DIGITS + 2] = {0};
@@ -355,7 +199,7 @@ char *itoa(long i)
 }
 
 // Converts unsigned integer to string of its value.
-char *uitoa(unsigned long i)
+char *uitoa(unsigned int i)
 {
     /* Room for UINT_DIGITS digits and '\0' */
     static char buf[UINT_DIGITS + 1] = {0};
@@ -372,7 +216,7 @@ char *uitoa(unsigned long i)
 
 int max(int a, int b)
 {
-    if(a > b)
+    if (a > b)
     {
         return a;
     }
@@ -384,7 +228,7 @@ int max(int a, int b)
 
 int min(int a, int b)
 {
-    if(a < b)
+    if (a < b)
     {
         return a;
     }
@@ -394,13 +238,40 @@ int min(int a, int b)
     }
 }
 
+// Parses (unsigned) int in string str, trims leading and trailing whitespaces. 
+// Returns -1 on failure (incompatible chars or out of range).
+int atoi(char *str)
+{
+    trim(str, ' ');
+    int res = 0;
+    int i = 0;
+    while(str[i] != NULL)
+    {
+        if(str[i] < '0' || str[i] > '9') // Character is not a number
+        {
+            return -1;
+        }
+        else
+        {
+            if(res > INT_MAX / 10)
+            {
+                return -1;
+            }
+            res += (str[i] - '0'); // That converts char to its numerical value
+            res *= 10;
+        }
+        i++;
+    }
+    return res / 10;
+}
+
 // Arr utils
 
 // Gets lenght of a null terminated array of pointers
 int arrlen(void **arr)
 {
     int i = 0;
-    while(arr[i] != NULL)
+    while (arr[i] != NULL)
     {
         i++;
     }

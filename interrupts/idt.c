@@ -189,3 +189,13 @@ void irq_handler(struct InterruptRegisters *regs)
 
     pByteOut(0x20, 0x20);
 }
+
+void cli()
+{
+    asm volatile("cli");
+}
+
+void sti()
+{
+    asm volatile("cli");
+}

@@ -1,6 +1,9 @@
 #include "../drivers/screen.h"
 #include "./util.h"
+#include "./memory.h"
 #include "../drivers/keyboard.h"
+#include "../drivers/timer.h"
+#include "../drivers/sound.h"
 
 char *readLine();
 int execLine(int argc, char **argv);
@@ -8,12 +11,17 @@ int sh_cls(int argc, char **argv);
 int sh_setfg(int argc, char **argv);
 int sh_setbg(int argc, char **argv);
 int sh_hlp(int argc, char **argv);
+int sh_slp(int argc, char **argv);
+int sh_echo(int argc, char **argv);
+
 
 char *builtin_cmds[] = {
     "clear",
     "setfg",
     "setbg",
     "help",
+    "sleep",
+    "echo",
     NULL
 };
 
@@ -22,6 +30,8 @@ int (*builtin_func[]) (int, char **) = {
     &sh_setfg,
     &sh_setbg,
     &sh_hlp,
+    &sh_slp,
+    &sh_echo
 };
 
 void initShell()
@@ -32,6 +42,7 @@ void initShell()
     int status;
     while (1)
     {
+        
         print("$>");
         line = readLine();
         args = strsplt(line, ' ');
@@ -48,12 +59,12 @@ void initShell()
 char *readLine()
 {
     int currentLineLenght = 0;
-    char *lineContent = (char *)malloc(sizeof(char) * 77); // Allocate one line worth of data
+    char *lineContent = (char *)malloc(sizeof(char) * (MAX_COLS - 3)); // Allocate one line worth of data
     if (!lineContent)
     {
         except("Error allocating line");
     }
-    memset(lineContent, 0, 77 * sizeof(char)); // Clear buffer memory
+    memset(lineContent, 0, (MAX_COLS - 3) * sizeof(char)); // Clear buffer memory
     while (1)
     {
         char pressedKey = readKey();
@@ -73,7 +84,7 @@ char *readLine()
             printc('\n');
             return lineContent;
         }
-        if (currentLineLenght < 77)
+        if (currentLineLenght < (MAX_COLS - 3))
         {
             printc(pressedKey);
             lineContent[currentLineLenght] = pressedKey;
@@ -180,12 +191,38 @@ int sh_setbg(int argc, char **argv)
 
 int sh_hlp(int argc, char **argv)
 {
-    println("Welcome to LacOS! For now, this is a very very simple operating system, with just this shell and not much more, there are plans to integrate more things in the future (like the FAT filesystem and a cross compiler).\nHere are the builtin commands:");
+    println("Welcome to LacOS!\nFor now, this is a very very simple operating system, with just this shell and not much more, there are plans to integrate more things in the future (like the FAT filesystem and a cross compiler).\nHere are the builtin commands:");
     int i = 0;
     while (builtin_cmds[i] != NULL)
     {
         println(builtin_cmds[i]);
         i++;
     }
+    return 0;
+}
+
+int sh_slp(int argc, char **argv)
+{
+    int millis = atoi(argv[1]);
+    if(millis < 0)
+    {
+        println("Incorrect usage. Correct usage is 'sleep <millis>', where millis is the number of milliseconds to sleep.");
+        return 1;
+    }
+    else
+    {
+        sleep(millis);
+    }
+    return 0;
+}
+
+int sh_echo(int argc, char **argv)
+{
+    for (int i = 1; i < argc; i++)
+    {
+        print(argv[i]);
+        printc(' ');
+    }
+    printc('\n');
     return 0;
 }

@@ -1,21 +1,22 @@
 #define NULL 0
 #define TRUE 1
 #define FALSE 0
-void initmm();
-void *malloc(unsigned long blockLenghth);
-void except(char* msg);
-void free(void *ptr);
-void freearr_str(char **ptr);
-void *realloc(void *ptr, unsigned long newLenght);
+#define CHAR_MAX 127
+#define CHAR_MIN -128
+#define UCHAR_MAX 255
+#define INT_MIN -2147483648
+#define INT_MAX 2147483647
+#define UINT_MAX 4294967295
 void memcpy(char *source, char *dest, int n);
 int strlen(char* str);
 int strcmp(char *str1, char *str2);
 void memset(void *dest, char val, unsigned long n);
 void trim(char *str, char trim);
 char **strsplt(char *str, char delim);
-char *uitoh(unsigned long i);
-char *itoa(long i);
-char *uitoa(unsigned long i);
+char *uitoh(unsigned int i);
+char *itoa(int i);
+char *uitoa(unsigned int i);
+int atoi(char *str);
 int max(int a, int b);
 int min(int a, int b);
 int arrlen(void **arr);
@@ -28,12 +29,3 @@ struct MapEntryStruct
     unsigned long acpi;
 } __attribute__((packed));
 
-// <isBlockFree>(8)|<blockSizeInBytes>(32)|<previousBlockAdress>(32)|<nextBlockAdress>(32)
-struct MemoryBlockHeader
-{
-    unsigned char magicNumber;
-    unsigned char isBlockFree;
-    unsigned long blockSize;
-    struct MemoryBlockHeader *previousBlockAdress;
-    struct MemoryBlockHeader *nextBlockAdress;
-} __attribute__((packed));

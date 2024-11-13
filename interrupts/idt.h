@@ -29,6 +29,8 @@ void isr_handler(struct InterruptRegisters* regs);
 void irqInstallHandler(int irq, void (*handler)(struct InterruptRegisters *r));
 void irqUninstallHandler(int irq);
 void except_intern(char* errorMessage);
+void cli();
+void sti();
 
 extern void isr0();
 extern void isr1();
