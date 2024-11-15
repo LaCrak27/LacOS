@@ -5,10 +5,12 @@ HEADERS = $(wildcard kernel/*.h drivers/*.h interrupts/*.h)
 ASM_SOURCES = $(wildcard interrupts/*.asm)
 
 all: clean LacOS.img LacOS.iso
-debug: clean LacOS.bin
+bochsdbg: clean LacOS.bin
 	bochsdbg.exe -f debug.bxrc -q
 start: clean LacOS.bin
 	qemu-system-x86_64.exe -fda LacOS.bin
+debug: clean LacOS.bin
+	qemu-system-x86_64 -s -fda LacOS.bin
 LacOS.iso: LacOS.img
 	mkisofs -pad -b LacOS.img -R -o LacOS.iso LacOS.img
 LacOS.img: LacOS.bin
@@ -20,8 +22,6 @@ boot_sect.bin: boot/boot_sect.asm
 	nasm boot/boot_sect.asm -f bin -o boot_sect.bin
 kernel.bin: kernel/kernel_entry.o kernel/kernel.o ${OBJ} ${SOBJ}
 	ld -m elf_i386 -o $@ -Ttext 0x1500 $^ --oformat binary
-kernel/kernel.o: kernel/kernel.c
-	gcc -fno-pie -ffreestanding -m32 -c kernel/kernel.c -o kernel/kernel.o
 kernel/kernel_entry.o: kernel/kernel_entry.asm
 	nasm kernel/kernel_entry.asm -f elf -o kernel/kernel_entry.o
 clean:
@@ -29,7 +29,7 @@ clean:
 	rm -fr kernel/*.o boot/*.bin drivers/*.o
 
 %.o: %.c ${HEADERS}
-	gcc -fno-pie -ffreestanding -m32 -c $< -o $@
+	gcc -g -fno-pie -ffreestanding -m32 -c $< -o $@
 
 %.o: %.asm
 	nasm $< -f elf -o $@

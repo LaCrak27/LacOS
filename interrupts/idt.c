@@ -197,5 +197,5 @@ void cli()
 
 void sti()
 {
-    asm volatile("cli");
+    asm volatile("sti");
 }

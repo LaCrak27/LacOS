@@ -178,9 +178,6 @@ int sh_setbg(int argc, char **argv)
             set_bg(i);
             print("Background succesfully set to ");
             print(argv[1]);
-            print("(");
-            print(itoa(i));
-            print(")");
             println(".");
             return 0;
         }
