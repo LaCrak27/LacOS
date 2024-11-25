@@ -25,7 +25,7 @@ void main()
     println("Done!");
     set_fg(GRAY);
     println("Initializing floppy...       ");
-    initFloppy();
+    //initFloppy();
     if (1)
     {
         set_fg(GREEN);
@@ -43,14 +43,10 @@ void main()
     set_fg(GREEN);
     println("Done!");
     set_fg(GRAY);
-    print("Initializing memory manager...     ");
     unsigned char *magicNumberPointer = (char *)0x1000;
     if (*magicNumberPointer == 0x69)
     {
         initmm();
-        set_fg(GREEN);
-        println("Done!");
-        set_fg(GRAY);
     }
     else
     {

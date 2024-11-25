@@ -29,7 +29,7 @@ clean:
 	rm -fr kernel/*.o boot/*.bin drivers/*.o
 
 %.o: %.c ${HEADERS}
-	gcc -g -fno-pie -ffreestanding -m32 -c $< -o $@
+	gcc -fno-pie -ffreestanding -m32 -c $< -o $@
 
 %.o: %.asm
 	nasm $< -f elf -o $@

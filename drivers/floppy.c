@@ -5,12 +5,14 @@
 #include "../interrupts/idt.h"
 #include "timer.h"
 
-void irq_handler();
+void floppy_irq_handler();
 void wait_irq();
 void floppy_write_cmd(int cmd);
+unsigned char floppy_read_data();
 void floppy_check_interrupt(int *st0, int *cyl);
-int floppy_calibrate(int base);
-int floppy_reset(int base);
+void floppy_configure(unsigned impseek, unsigned fifo, unsigned polling, unsigned treshold, unsigned precomp);
+int floppy_calibrate();
+int floppy_reset();
 void floppy_motor(int onoff);
 static int floppy_dma_init(floppy_dir dir);
 int floppy_do_track(unsigned cyl, floppy_dir dir);
@@ -30,7 +32,7 @@ static char *drive_types[8] = {
     "unknown type"};
 
 char irqReceived = FALSE;
-void irq_handler()
+void floppy_irq_handler()
 {
     irqReceived = TRUE;
 }
@@ -46,7 +48,7 @@ void wait_irq()
 
 void initFloppy()
 {
-    irqInstallHandler(6, &irq_handler);
+    irqInstallHandler(6, &floppy_irq_handler);
     outb(0x70, 0x10);
     unsigned drives = inb(0x71);
     print(" - Drive 0: ");
@@ -57,6 +59,16 @@ void initFloppy()
     set_fg(YELLOW);
     println(drive_types[drives & 0x0F]);
     set_fg(GRAY);
+    /*floppy_write_cmd(VERSION);
+    if(floppy_read_data() != 0x90)
+    {
+        println("Unsupported controller, stuff may fail, continue at your own risk");
+    }
+    floppy_configure(0, 1, 0, 8, 0);
+    floppy_write_cmd(LOCK);
+    floppy_reset();
+    floppy_calibrate();
+    println("Configured");*/
 }
 
 void floppy_write_cmd(int cmd)
@@ -67,7 +79,8 @@ void floppy_write_cmd(int cmd)
         sleep(10);
         if (0x80 & inb(MAIN_STATUS_REGISTER))
         {
-            return (void)outb(DATA_FIFO, cmd);
+            outb(DATA_FIFO, cmd);
+            return;
         }
     }
     // Handle the command failing
@@ -76,7 +89,6 @@ void floppy_write_cmd(int cmd)
 
 unsigned char floppy_read_data()
 {
-
     int i; // do timeout, 60 seconds
     for (i = 0; i < 600; i++)
     {
@@ -98,8 +110,17 @@ void floppy_check_interrupt(int *st0, int *cyl)
     *cyl = floppy_read_data(STATUS_REGISTER_A);
 }
 
+void floppy_configure(unsigned impseek, unsigned fifo, unsigned polling, unsigned treshold, unsigned precomp)
+{
+    floppy_write_cmd(CONFIGURE);
+    floppy_write_cmd(0);
+    floppy_write_cmd(impseek << 6 | !fifo << 5 | !polling << 4 | treshold);
+    floppy_write_cmd(0);
+    return;
+}
+
 // Move to cylinder 0, which calibrates the drive..
-int floppy_calibrate(int base)
+int floppy_calibrate()
 {
     int i, st0, cyl = -1; // set to bogus cylinder
     floppy_motor(floppy_motor_on);
@@ -128,7 +149,7 @@ int floppy_calibrate(int base)
     return -1;
 }
 
-int floppy_reset(int base)
+int floppy_reset()
 {
 
     outb(DIGITAL_OUTPUT_REGISTER, 0x00); // disable controller
@@ -144,7 +165,7 @@ int floppy_reset(int base)
     floppy_write_cmd(0xdf); /* steprate = 3ms, unload time = 240ms */
     floppy_write_cmd(0x02); /* load time = 16ms, no-DMA = 0 */
     // it could fail...
-    if (floppy_calibrate(base))
+    if (floppy_calibrate())
         return -1;
     return 0;
 }
@@ -219,6 +240,7 @@ static int floppy_dma_init(floppy_dir dir)
     } a, c;                 // address and count
 
     a.l = (unsigned)&floppy_dmabuf;
+    println("FUCK YOU!!!!!!");
     println(uitoh((unsigned)&floppy_dmabuf));
     c.l = (unsigned)floppy_dmalen - 1; // -1 because of DMA counting
 

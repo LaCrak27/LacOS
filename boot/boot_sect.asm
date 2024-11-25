@@ -5,7 +5,7 @@ MAP_OFFSET equ 0x1000 ; Where the kernel gets loaded
 
     mov [BOOT_DRIVE], dl ; Store boot drive in DL
 
-    mov bp, 0x9000 ; Stack set-up
+    mov bp, 0xFFFF ; Stack set-up
     mov sp, bp 
 
     call get_map
@@ -31,9 +31,8 @@ MAP_OFFSET equ 0x1000 ; Where the kernel gets loaded
 ; looad kernel
 load_kernel:
     mov bx, KERNEL_OFFSET ; Place in memory to load data
-    mov dh, 50 ; Number of sectors
     mov dl, [BOOT_DRIVE] ; Drive selection
-    call disk_load
+    call disk_load ; Will perform 2 load operations to load 100 sectors (7.5KB) into memory [ES:BX]
 
     ret
 
