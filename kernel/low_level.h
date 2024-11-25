@@ -1,6 +1,6 @@
-unsigned char pByteIn(unsigned short port);
+unsigned char inb(unsigned short port);
 
-void pByteOut(unsigned short port, unsigned char data);
+void outb(unsigned short port, unsigned char data);
 
 unsigned short pWordIn(unsigned short port);
 

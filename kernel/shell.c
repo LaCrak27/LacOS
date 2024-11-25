@@ -13,6 +13,7 @@ int sh_setbg(int argc, char **argv);
 int sh_hlp(int argc, char **argv);
 int sh_slp(int argc, char **argv);
 int sh_echo(int argc, char **argv);
+int sh_millis(int argc, char **argv);
 
 
 char *builtin_cmds[] = {
@@ -22,6 +23,7 @@ char *builtin_cmds[] = {
     "help",
     "sleep",
     "echo",
+    "millis",
     NULL
 };
 
@@ -31,7 +33,8 @@ int (*builtin_func[]) (int, char **) = {
     &sh_setbg,
     &sh_hlp,
     &sh_slp,
-    &sh_echo
+    &sh_echo,
+    &sh_millis
 };
 
 void initShell()
@@ -221,5 +224,12 @@ int sh_echo(int argc, char **argv)
         printc(' ');
     }
     printc('\n');
+    return 0;
+}
+
+int sh_millis(int argc, char **argv)
+{
+    print("Time in ms since the machine has booted up: ");
+    println(uitoa(millis()));
     return 0;
 }

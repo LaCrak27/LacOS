@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "low_level.h": "c"
+        "low_level.h": "c",
+        "time.h": "c"
     }
 }

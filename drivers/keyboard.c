@@ -77,8 +77,8 @@ char readKey()
 
 void keyboardHandler(InterruptRegisters *regs)
 {
-    char scanCode = pByteIn(0x60) & 0x7F; //What key is pressed
-    char press = pByteIn(0x60) & 0x80; //Press down, or released
+    char scanCode = inb(0x60) & 0x7F; //What key is pressed
+    char press = inb(0x60) & 0x80; //Press down, or released
 
     onKeyPress(scanCode, press);
 }

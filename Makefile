@@ -7,8 +7,8 @@ ASM_SOURCES = $(wildcard interrupts/*.asm)
 all: clean LacOS.img LacOS.iso
 bochsdbg: clean LacOS.bin
 	bochsdbg.exe -f debug.bxrc -q
-start: clean LacOS.bin
-	qemu-system-x86_64.exe -fda LacOS.bin
+start: clean LacOS.img
+	qemu-system-x86_64.exe -fda LacOS.img
 debug: clean LacOS.bin
 	qemu-system-x86_64 -s -fda LacOS.bin
 LacOS.iso: LacOS.img

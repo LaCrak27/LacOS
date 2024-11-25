@@ -25,8 +25,8 @@ int lastOffset = 0;
 void disable_cursor()
 {
     // Disable Cursor
-    pByteOut(0x3D4, 0x0A);
-    pByteOut(0x3D5, 0x20);
+    outb(0x3D4, 0x0A);
+    outb(0x3D5, 0x20);
 }
 
 void erase_char()
@@ -84,10 +84,10 @@ int get_cursor()
 {
     // reg 14: high byte of offset
     // reg 15: low byte of offset
-    pByteOut(REG_SCREEN_CTRL, 14);
-    int offset = pByteIn(REG_SCREEN_DATA) << 8;
-    pByteOut(REG_SCREEN_CTRL, 15);
-    offset += pByteIn(REG_SCREEN_DATA);
+    outb(REG_SCREEN_CTRL, 14);
+    int offset = inb(REG_SCREEN_DATA) << 8;
+    outb(REG_SCREEN_CTRL, 15);
+    offset += inb(REG_SCREEN_DATA);
     return offset * 2; // Multiply it by 2 to get the memory adress.
 }
 
@@ -106,10 +106,10 @@ int get_cursor_col()
 void set_cursor(int offset)
 {
     offset /= 2; // From memory offset to cursor offset
-    pByteOut(REG_SCREEN_CTRL, 14);
-    pByteOut(REG_SCREEN_DATA, (unsigned char)(offset >> 8));
-    pByteOut(REG_SCREEN_CTRL, 15);
-    pByteOut(REG_SCREEN_DATA, offset);
+    outb(REG_SCREEN_CTRL, 14);
+    outb(REG_SCREEN_DATA, (unsigned char)(offset >> 8));
+    outb(REG_SCREEN_CTRL, 15);
+    outb(REG_SCREEN_DATA, offset);
 }
 
 void print_at(char *message, int col, int row)
