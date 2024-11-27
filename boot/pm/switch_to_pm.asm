@@ -2,6 +2,7 @@
 ; Switch to PM
 switch_to_pm:
     cli ; Disable interrupts
+
     lgdt [gdt_descriptor] ; Load GDT
 
     mov eax, cr0 ; Make the 1st bit of cr0 to be a one

@@ -1,4 +1,3 @@
-; SOURCE: https://wiki.osdev.org/Detecting_Memory_(x86)#Getting_an_E820_Memory_Map
 ; use the INT 0x15, eax= 0xE820 BIOS function to get a memory map
 ; inputs: es:di -> destination buffer for 24 byte entries
 ; outputs: bp = entry count, trashes all registers except esi
@@ -11,14 +10,14 @@ get_map:
     mov di, 0x1002          ; Set di to 0x1002. This is where we'll store the first entry
 	xor ebx, ebx		; ebx must be 0 to start
 	xor bp, bp		; keep an entry count in bp (clear it here)
-	mov edx, 0x0534D4150	; Place "SMAP" into edx
+	mov edx, 0x0534D4150
 	mov eax, 0xe820
 	mov [es:di + 20], dword 1	; force a valid ACPI 3.X entry
 	mov ecx, 24		; ask for 24 bytes
 	int 0x15
 	jc failed	; carry set on first call means "unsupported function"
 	mov edx, 0x0534D4150	; Some BIOSes apparently trash this register?
-	cmp eax, edx		; on success, eax must have been reset to "SMAP"
+	cmp eax, edx		; on success, eax must have been reset to "0x0534D4150"
 	jne failed
 	test ebx, ebx		; ebx = 0 implies list is only 1 entry long (worthless)
 	je failed

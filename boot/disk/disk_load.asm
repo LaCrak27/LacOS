@@ -1,51 +1,45 @@
-; load DH sectors to ES:BX from drive DL
+; load DH sectors to ES:BX from drive DL 
+; ngl this is hacky af but i've been working on it for more than 6 hours and it works so i'm not touching it
+; TODO: Make this load 0x1ce40 bytes (don't hardcode stuff so much, just repeat it ig)
 disk_load:
-  
-    ;pusha
-    mov ah, 0x02 ; Read sector function 
-    mov al, 35 ; Read dh sectors
-    mov ch, 0x00 ; Cylinder 0
-    mov dh, 0x00 ; Head 0
-    mov cl, 0x02 ; Start from the second sector (right after this)  
+    pusha
+    mov di, 0
+    mov es, di ; Get ES ready
+    mov bx, KERNEL_OFFSET
+    shr bx, 4 ; FFF0 -> 0FFF
+    mov ds, bx ; Get SS ready
 
-    int 0x13 ; Bios interrupt
+    mov ch, 0 ; Cylinder 0
+    call fd_load
 
-    jc disk_error
+    mov ax, 0x4800 ; Amount of bytes to move
+    xchg bx, bx
+    call memcpy ; Move from ss:bx (0x1500) to es:di (3rd cylinder pointer)
+    add di, 0x4800 ; Move pointer down to make size for second block
     
+    mov ch, 1 ; Cylinder 1
+    call fd_load
+
+    mov ax, 0x4800 ; Amount of bytes to move
     xchg bx, bx
-    ;add bx, 0x4600; Move pointer on ram to account for already read sectors
-    %ifdef COMMENT
+    call memcpy ; Move from ss:bx (0x1500) to es:di (3rd cylinder pointer)
+    add di, 0x4800 ; Move pointer down to make size for second block
+    xchg bx, bx
 
-    mov ah, 0x02 ; Read sector function 
-    mov al, 35 ; Read dh sectors
-    mov ch, 0x00
-    mov dh, 0x00 ; Head 0
-    mov cl, 0b01000001 ; Sector 1, Cylinder 1*/
-    ;       cyl | sec
-    %endif
+    mov bx, 0
+    mov ds, bx ; Reset ds for gdt
+    popa
+    ret
 
+fd_load: ; Loads cylinder ch into 0x1500
+    mov bx, 0x1500 ; Load into 0x1500
     mov ah, 0x02 ; Read sector function 
-    mov al, 35 ; Read dh sectors
-    mov ch, 0x00 ; Cylinder 0
+    mov al, 36 ; Read whole cylinder
     mov dh, 0x00 ; Head 0
-    mov cl, 0x41 ; Start from the second sector (right after this)  
+    mov cl, 0x01 ; Sector 1 (Read whole cylinder)
 
     int 0x13
-
     jc disk_error
-    xchg bx, bx
-    ;add bx, 0x4600; Move pointer on ram to account for already read sectors
-
-    mov ah, 0x02 ; Read sector function 
-    mov al, 35 ; Read dh sectors
-    mov ch, 0x00
-    mov dh, 0x00 ; Head 0
-    mov cl, 0b10000001 ; Sector 1, Cylinder 2
-
-    int 0x13
-
-    jc disk_error
-    ;popa
     ret
 
 disk_error:
