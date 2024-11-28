@@ -154,6 +154,10 @@ char *uitoh(unsigned int i)
 {
     static char buf[19];
     char *p = buf + 18; // Points to terminating 0
+    if(i == 0)
+    {
+        *--p = '0';
+    }
     while (i != 0)
     {
         if ((i % 16) <= 9) // We got a number, represent with regular 0-9
@@ -168,6 +172,26 @@ char *uitoh(unsigned int i)
     }
     *--p = 'x';
     *--p = '0';
+    return p;
+}
+
+// Converts unsigned char to hex representation (no 0x, use uitoh for that)
+char *uctoh(unsigned char c)
+{
+    static char buf[3];
+    char *p = buf + 2; // Points to terminating 0
+    for(int i = 0; i < 2; i++)
+    {
+        if ((c % 16) <= 9) // We got a number, represent with regular 0-9
+        {
+            *--p = '0' + (c % 16);
+        }
+        else
+        {
+            *--p = 'A' + ((c % 16) - 10);
+        }
+        c /= 16;
+    }
     return p;
 }
 

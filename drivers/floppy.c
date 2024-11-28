@@ -4,13 +4,14 @@
 #include "screen.h"
 #include "../interrupts/idt.h"
 #include "timer.h"
+#include "../kernel/debug.h"
 
 void floppy_irq_handler();
 void wait_irq();
 void floppy_write_cmd(int cmd);
 unsigned char floppy_read_data();
 void floppy_check_interrupt(int *st0, int *cyl);
-void floppy_configure(unsigned impseek, unsigned fifo, unsigned polling, unsigned treshold, unsigned precomp);
+void floppy_configure();
 int floppy_calibrate();
 int floppy_reset();
 void floppy_motor(int onoff);
@@ -45,16 +46,20 @@ void floppy_irq_handler()
 
 void wait_irq()
 {
-    irqReceived = FALSE;
     while (!irqReceived)
     {
     }
     return;
 }
 
+static unsigned char floppy_dmabuf[floppy_dmalen]__attribute__((aligned(0x8000)));
+
 int initFloppy()
 {
+    println("Installing irq handler...");
     irqInstallHandler(6, &floppy_irq_handler);
+    print("DMA Adress (for debugging): ");
+    println(uitoh((unsigned)&floppy_dmabuf));
     outb(0x70, 0x10);
     unsigned drives = inb(0x71);
     print(" - Drive 0: ");
@@ -74,10 +79,13 @@ int initFloppy()
     floppy_write_cmd(VERSION);
     if(floppy_read_data() != 0x90)
     {
-        println("Unsupported controller, stuff may fail, continue at your own risk");
+        println("Unsupported controller (how on earth did you even get a computer this old), stuff may fail, continue at your own risk");
     }
     println("Configuring...");
-    floppy_configure(0, 1, 0, 8, 0); // Implied seek off, fifo on, polling off, threshold 15ms, no precomp
+    floppy_write_cmd(SPECIFY); // Enable IRQs and stuff
+    floppy_write_cmd(0xdf); /* steprate = 3ms, unload time = 240ms */
+    floppy_write_cmd(0x02); /* load time = 16ms, no-DMA = 0 */
+    floppy_configure(); // Implied seek off, fifo on, polling off, threshold 15ms, no precomp
     println("Locking config...");
     floppy_write_cmd(LOCK);
     println("Reseting and calibrating controller...");
@@ -87,6 +95,26 @@ int initFloppy()
         return 2;
     }
     println("Floppy 0 configured correctly!");
+    println("Validating floppy access...");
+    floppy_read_track(0);
+    if(floppy_dmabuf[0x1FF] != 0xAA)
+    {
+        println("Floppy validation failed. Dumping read boot sector in 1s:");
+        sleep(1000);
+        for(int i = 0; i < 0x20; i++)
+        {
+            print(uitoh(i*16));
+            print("  ");
+            for(int j = 0; j < 16; j++)
+            {
+                print(uctoh(floppy_dmabuf[i*16 + j]));
+                printc(' ');
+            }
+            printc('\n');
+            sleep(10);
+        }
+        return 3;
+    }
     floppy_available = 1;
     return 0;
 }
@@ -121,7 +149,7 @@ unsigned char floppy_read_data()
         }
     }
     // Handle read failed
-    except_intern("Floppy read failed (wut da hellll)");
+    except_intern("Floppy read failed!!!");
     return 0; // not reached
 }
 
@@ -132,11 +160,11 @@ void floppy_check_interrupt(int *st0, int *cyl)
     *cyl = floppy_read_data(STATUS_REGISTER_A);
 }
 
-void floppy_configure(unsigned impseek, unsigned fifo, unsigned polling, unsigned treshold, unsigned precomp)
+void floppy_configure()
 {
     floppy_write_cmd(CONFIGURE);
     floppy_write_cmd(0);
-    floppy_write_cmd(impseek << 6 | !fifo << 5 | !polling << 4 | treshold);
+    floppy_write_cmd(0 << 6 | 0 << 5 | 1 << 4 | 8);
     floppy_write_cmd(0);
     return;
 }
@@ -173,11 +201,10 @@ int floppy_calibrate()
 
 int floppy_reset()
 {
+    irqReceived = FALSE;
     outb(DIGITAL_OUTPUT_REGISTER, 0x00); // disable controller
     outb(DIGITAL_OUTPUT_REGISTER, 0x0C); // enable controller
-    // In theory we should get an irq here, but qemu doesn't 
-    // really want to, so just for safety we wait 2.5 seconds here.
-    sleep(2500);                        
+    wait_irq();                       
     int st0, cyl;                       // ignore these here..
     floppy_check_interrupt(&st0, &cyl); // Send sense interrupt
     // set transfer speed 500kb/s for 1.44 mb floppy
@@ -231,6 +258,7 @@ int floppy_seek(unsigned cyli, int head)
 
     for (i = 0; i < 10; i++)
     {
+        irqReceived = FALSE; // Get ready
         // Attempt to position to given cylinder
         // 1st byte bit[1:0] = drive, bit[2] = head
         // 2nd byte is cylinder number
@@ -252,8 +280,6 @@ int floppy_seek(unsigned cyli, int head)
     return -1;
 }
 
-static const char floppy_dmabuf[floppy_dmalen]__attribute__((aligned(0x8000)));
-
 static int floppy_dma_init(floppy_dir dir)
 {
     union
@@ -263,8 +289,6 @@ static int floppy_dma_init(floppy_dir dir)
     } a, c;                 // address and count
 
     a.l = (unsigned)&floppy_dmabuf;
-    println("FUCK YOU!!!!!!");
-    println(uitoh((unsigned)&floppy_dmabuf));
     c.l = (unsigned)floppy_dmalen - 1; // -1 because of DMA counting
 
     // check that address is at most 24-bits (under 16MB)
@@ -310,6 +334,7 @@ static int floppy_dma_init(floppy_dir dir)
 //
 int floppy_do_track(unsigned cyl, floppy_dir dir)
 {
+    irqReceived = FALSE;
     
     // transfer command, set below
     unsigned char cmd;
@@ -343,7 +368,7 @@ int floppy_do_track(unsigned cyl, floppy_dir dir)
         floppy_dma_init(dir);
 
         sleep(100); // give some time (100ms) to settle after the seeks
-
+        irqReceived = FALSE; // Get ready to get interrupt
         floppy_write_cmd(cmd);  // set above for current direction
         floppy_write_cmd(0);    // 0:0:0:0:0:HD:US1:US0 = head and drive
         floppy_write_cmd(cyl);  // cylinder
