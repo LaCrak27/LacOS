@@ -4,14 +4,14 @@ SOBJ = ${ASM_SOURCES:.asm=.o}
 HEADERS = $(wildcard kernel/*.h drivers/*.h interrupts/*.h)
 ASM_SOURCES = $(wildcard interrupts/*.asm)
 
-all: clean LacOS.img LacOS.iso
+all: clean LacOS.img
 bochsdbg: clean LacOS.bin
 	bochsdbg.exe -f debug.bxrc -q
 start: clean LacOS.img
 	qemu-system-x86_64.exe -fda LacOS.img
 debug: clean LacOS.bin
 	qemu-system-x86_64 -s -fda LacOS.bin
-LacOS.iso: LacOS.img
+LacOS.iso: LacOS.img # This is a DOS, the ISO was experimental. A lot of things won't work
 	mkisofs -pad -b LacOS.img -R -o LacOS.iso LacOS.img
 LacOS.img: LacOS.bin
 	dd if=/dev/zero of=LacOS.img bs=512 count=2880
