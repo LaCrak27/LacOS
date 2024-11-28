@@ -45,5 +45,5 @@ typedef enum
 
 #define floppy_dmalen 0x4800
 
-void initFloppy();
-//char isFloppyAvailable();
+int initFloppy();
+char isFloppyAvailable();

@@ -21,7 +21,7 @@ LacOS.bin: kernel.bin boot_sect.bin
 boot_sect.bin: boot/boot_sect.asm
 	nasm boot/boot_sect.asm -f bin -o boot_sect.bin
 kernel.bin: kernel/kernel_entry.o kernel/kernel.o ${OBJ} ${SOBJ}
-	ld -m elf_i386 -o $@ -Ttext 0x1500 $^ --oformat binary
+	ld -m elf_i386 -o $@ -Ttext 0x101F0 $^ --oformat binary
 kernel/kernel_entry.o: kernel/kernel_entry.asm
 	nasm kernel/kernel_entry.asm -f elf -o kernel/kernel_entry.o
 clean:

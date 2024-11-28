@@ -20,6 +20,12 @@ int floppy_read_track(unsigned cyl);
 int floppy_write_track(unsigned cyl);
 void floppy_motor_kill();
 
+static char floppy_available = 0;
+char isFloppyAvailable()
+{
+    return floppy_available;
+}
+
 static char *drive_types[8] = {
     "none",
     "360kB 5.25\"",
@@ -46,7 +52,7 @@ void wait_irq()
     return;
 }
 
-void initFloppy()
+int initFloppy()
 {
     irqInstallHandler(6, &floppy_irq_handler);
     outb(0x70, 0x10);
@@ -59,22 +65,37 @@ void initFloppy()
     set_fg(YELLOW);
     println(drive_types[drives & 0x0F]);
     set_fg(GRAY);
-    /*floppy_write_cmd(VERSION);
+    if(drives >> 4 != 4)
+    {
+        println("Unsupported drive, aborting...");
+        return 1;
+    }
+    println("Checking controller version...");
+    floppy_write_cmd(VERSION);
     if(floppy_read_data() != 0x90)
     {
         println("Unsupported controller, stuff may fail, continue at your own risk");
     }
-    floppy_configure(0, 1, 0, 8, 0);
+    println("Configuring...");
+    floppy_configure(0, 1, 0, 8, 0); // Implied seek off, fifo on, polling off, threshold 15ms, no precomp
+    println("Locking config...");
     floppy_write_cmd(LOCK);
-    floppy_reset();
-    floppy_calibrate();
-    println("Configured");*/
+    println("Reseting and calibrating controller...");
+    if(floppy_reset())
+    {
+        println("Error when calibrating controller, aborting...");
+        return 2;
+    }
+    println("Floppy 0 configured correctly!");
+    floppy_available = 1;
+    return 0;
 }
 
 void floppy_write_cmd(int cmd)
 {
-    int i; // do timeout, 60 seconds
-    for (i = 0; i < 600; i++)
+    irqReceived = FALSE;
+    int i; // do timeout, 10 seconds
+    for (i = 0; i < 100; i++)
     {
         sleep(10);
         if (0x80 & inb(MAIN_STATUS_REGISTER))
@@ -89,8 +110,9 @@ void floppy_write_cmd(int cmd)
 
 unsigned char floppy_read_data()
 {
-    int i; // do timeout, 60 seconds
-    for (i = 0; i < 600; i++)
+    irqReceived = FALSE;
+    int i; // do timeout, 10 seconds
+    for (i = 0; i < 100; i++)
     {
         sleep(10);
         if (0x80 & inb(MAIN_STATUS_REGISTER))
@@ -151,10 +173,11 @@ int floppy_calibrate()
 
 int floppy_reset()
 {
-
     outb(DIGITAL_OUTPUT_REGISTER, 0x00); // disable controller
     outb(DIGITAL_OUTPUT_REGISTER, 0x0C); // enable controller
-    wait_irq();                         // sleep until interrupt occurs
+    // In theory we should get an irq here, but qemu doesn't 
+    // really want to, so just for safety we wait 2.5 seconds here.
+    sleep(2500);                        
     int st0, cyl;                       // ignore these here..
     floppy_check_interrupt(&st0, &cyl); // Send sense interrupt
     // set transfer speed 500kb/s for 1.44 mb floppy

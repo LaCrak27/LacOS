@@ -3,8 +3,6 @@
 KERNEL_OFFSET equ 0xFFF0 ; Where the kernel gets loaded
 MAP_OFFSET equ 0x1000 ; Where the kernel gets loaded
 
-    mov [BOOT_DRIVE], dl ; Store boot drive in DL
-
     mov bp, 0xF000 ; Stack set-up
     mov sp, bp 
 
@@ -28,20 +26,15 @@ MAP_OFFSET equ 0x1000 ; Where the kernel gets loaded
 
 ; looad kernel
 load_kernel:
-    mov dl, [BOOT_DRIVE] ; Drive selection
+    mov dl, 0 ; Drive selection
     call disk_load ; Will perform 2 load operations to load 100 sectors (7.5KB) into memory [ES:BX]
     ret
 
 [bits 32]
 ; We arrive here after switching to PM
 begin_pm:
-    xchg bx, bx
     call KERNEL_OFFSET + 0x200 ; Jump to where we loaded the kernel (skip boot sect) :)
-
     jmp $ ; In case it doenst work
-
-; Constants
-BOOT_DRIVE db 0
 
 ; Padding and magic number ($-$$ is current line)
 times 510-($-$$) db 0   

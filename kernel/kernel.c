@@ -14,19 +14,18 @@ void main()
     clear_screen();
     println("LacOS v0.3");
     println("(c) LaCrak27 2023-2024. No rights reserved.");
-    print("Initializing IDT...          ");
-    initIdt();
-    set_fg(GREEN);
-    println("Done!");
-    set_fg(GRAY);
     print("Initializing timer...        ");
     initTimer();
     set_fg(GREEN);
     println("Done!");
     set_fg(GRAY);
+    print("Initializing IDT...          ");
+    initIdt();
+    set_fg(GREEN);
+    println("Done!");
+    set_fg(GRAY);
     println("Initializing floppy...       ");
-    //initFloppy();
-    if (1)
+    if (!initFloppy())
     {
         set_fg(GREEN);
         println("Floppy initialization done!");
