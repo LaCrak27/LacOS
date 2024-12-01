@@ -14,6 +14,7 @@ void memset(void *dest, char val, unsigned long n);
 void trim(char *str, char trim);
 char **strsplt(char *str, char delim);
 char *uitoh(unsigned int i);
+char *uitohp(unsigned int i, int digits);
 char *uctoh(unsigned char c);
 char *itoa(int i);
 char *uitoa(unsigned int i);

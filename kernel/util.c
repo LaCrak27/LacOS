@@ -175,6 +175,36 @@ char *uitoh(unsigned int i)
     return p;
 }
 
+// Converts unsigned long to it's hex string representation.
+// Padded (0x23 & digits = 4) -> 0x0023
+char *uitohp(unsigned int i, int digits)
+{
+    if(digits > 15) digits = 15;
+    static char buf[19];
+    char *p = buf + 18; // Points to terminating 0
+    while (i != 0)
+    {
+        if ((i % 16) <= 9) // We got a number, represent with regular 0-9
+        {
+            *--p = '0' + (i % 16);
+        }
+        else
+        {
+            *--p = 'A' + ((i % 16) - 10);
+        }
+        i /= 16;
+        digits--;
+    }
+    while (digits > 0)
+    {
+        *--p = '0';
+        digits--;
+    }
+    *--p = 'x';
+    *--p = '0';
+    return p;
+}
+
 // Converts unsigned char to hex representation (no 0x, use uitoh for that)
 char *uctoh(unsigned char c)
 {

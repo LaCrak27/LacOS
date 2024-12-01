@@ -4,6 +4,7 @@
 #include "../drivers/keyboard.h"
 #include "../drivers/timer.h"
 #include "../drivers/sound.h"
+#include "../drivers/floppy.h"
 
 char *readLine();
 int execLine(int argc, char **argv);
@@ -14,7 +15,7 @@ int sh_hlp(int argc, char **argv);
 int sh_slp(int argc, char **argv);
 int sh_echo(int argc, char **argv);
 int sh_millis(int argc, char **argv);
-
+int sh_fdump(int argc, char **argv);
 
 char *builtin_cmds[] = {
     "clear",
@@ -24,6 +25,7 @@ char *builtin_cmds[] = {
     "sleep",
     "echo",
     "millis",
+    "fdump",
     NULL
 };
 
@@ -34,7 +36,8 @@ int (*builtin_func[]) (int, char **) = {
     &sh_hlp,
     &sh_slp,
     &sh_echo,
-    &sh_millis
+    &sh_millis,
+    &sh_fdump
 };
 
 void initShell()
@@ -65,7 +68,7 @@ char *readLine()
     char *lineContent = (char *)malloc(sizeof(char) * (MAX_COLS - 3)); // Allocate one line worth of data
     if (!lineContent)
     {
-        except("Error allocating line");
+        except("Error allocating line.");
     }
     memset(lineContent, 0, (MAX_COLS - 3) * sizeof(char)); // Clear buffer memory
     while (1)
@@ -191,13 +194,14 @@ int sh_setbg(int argc, char **argv)
 
 int sh_hlp(int argc, char **argv)
 {
-    println("Welcome to LacOS!\nFor now, this is a very very simple operating system, with just this shell and not much more, there are plans to integrate more things in the future (like the FAT filesystem and a cross compiler).\nHere are the builtin commands:");
+    println("Welcome to LacOS!\nFor now, this is a very very simple operating system.\nHere are the builtin commands:");
     int i = 0;
     while (builtin_cmds[i] != NULL)
     {
         println(builtin_cmds[i]);
         i++;
     }
+    println("You can run each command to get extra information on it.\nOn help prompts, an argument surrounded with <> is mandatory, while an argument surrounded with [] is optional.");
     return 0;
 }
 
@@ -231,5 +235,51 @@ int sh_millis(int argc, char **argv)
 {
     print("Time in ms since the machine has booted up: ");
     println(uitoa(millis()));
+    return 0;
+}
+
+int sh_fdump(int argc, char **argv)
+{
+    int paged = FALSE;
+    int cyl = -1;
+    for(int i = 1; i < argc; i++) // First arg is name of command
+    {
+        if(strcmp(argv[i], "-paged"))
+        {
+            paged = TRUE;
+        }
+        else
+        {
+            int readCyl = atoi(argv[i]);
+            if(readCyl >= 0)
+            {
+                cyl = readCyl;
+            }
+        }
+    }
+    if(cyl < 0)
+    {
+        println("Incorrect usage, correct usage: fdump <cyl> [-paged].");
+        return 1;
+    }
+    println("Reading from floppy, please wait...");
+    unsigned char *fd = malloc(floppy_dmalen * sizeof(unsigned char));
+    floppyRawRead(cyl, fd);
+    println("- - - - - - - - - - - - - - - CYLINDER DUMP - - - - - - - - - - - - - - -");
+    println("C.ADDR  |  00  01  02  03  04  55  06  07  08  09  0A  0B  0C  0D  0E  0F");
+    println("-------------------------------------------------------------------------");
+    for(int i = 0; i < floppy_dmalen; i += 16)
+    {
+        print(uitohp(i, 4));
+        print("  |");
+        for (int j = 0; j < 16; j++)
+        {
+            print("  ");
+            print(uctoh(fd[i+j]));
+        }
+        if(paged) readKey();
+        printc('\n');
+    }
+    free(fd);
     return 0;
 }

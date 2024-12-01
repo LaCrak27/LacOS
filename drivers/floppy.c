@@ -21,6 +21,14 @@ int floppy_read_track(unsigned cyl);
 int floppy_write_track(unsigned cyl);
 void floppy_motor_kill();
 
+// DMA buffer
+static unsigned char floppy_dmabuf[floppy_dmalen]__attribute__((aligned(0x8000)));
+// Actual floppy buffer (cache to not re-read since that takes AGES)
+static unsigned char floppy_buffer[1474560];
+// Says if cylinders (both tracks) are valid, since those are the chunks we read.
+// TODO: Handle disk changing to reset cache
+static unsigned char floppy_cyl_cache[80];
+
 static char floppy_available = 0;
 char isFloppyAvailable()
 {
@@ -52,23 +60,15 @@ void wait_irq()
     return;
 }
 
-static unsigned char floppy_dmabuf[floppy_dmalen]__attribute__((aligned(0x8000)));
-
 int initFloppy()
 {
     println("Installing irq handler...");
     irqInstallHandler(6, &floppy_irq_handler);
-    print("DMA Adress (for debugging): ");
-    println(uitoh((unsigned)&floppy_dmabuf));
     outb(0x70, 0x10);
     unsigned drives = inb(0x71);
-    print(" - Drive 0: ");
+    print(" - Drive type: ");
     set_fg(YELLOW);
     println(drive_types[drives >> 4]);
-    set_fg(GRAY);
-    print(" - Drive 1: ");
-    set_fg(YELLOW);
-    println(drive_types[drives & 0x0F]);
     set_fg(GRAY);
     if(drives >> 4 != 4)
     {
@@ -95,8 +95,10 @@ int initFloppy()
         return 2;
     }
     println("Floppy 0 configured correctly!");
-    println("Validating floppy access...");
+    /*println("Validating floppy access (reading cyl 0)...");
     floppy_read_track(0);
+    // This is hardcoded here but in the actual driver code to read and write it'll be inside a function.
+    memcpy(floppy_dmabuf, floppy_buffer, floppy_dmalen); // Copy to floppy buffer
     if(floppy_dmabuf[0x1FF] != 0xAA)
     {
         println("Floppy validation failed. Dumping read boot sector in 1s:");
@@ -114,7 +116,7 @@ int initFloppy()
             sleep(10);
         }
         return 3;
-    }
+    }*/
     floppy_available = 1;
     return 0;
 }
@@ -396,6 +398,7 @@ int floppy_do_track(unsigned cyl, floppy_dir dir)
             error = 1;
         }
         if(st1 & 0x80) { // End of cylinder
+        println("AB");
             error = 2;
         }
         if(st0 & 0x08) { // Drive not ready
@@ -442,15 +445,24 @@ int floppy_do_track(unsigned cyl, floppy_dir dir)
         }
     }
     floppy_motor(floppy_motor_off);
-    return error;
+    return 0xFF;
 }
 
 int floppy_read_track(unsigned cyl) 
 {
-    return floppy_do_track(cyl, floppy_dir_read);
+    int s = floppy_do_track(cyl, floppy_dir_read);
+    return s;
 }
 
 int floppy_write_track(unsigned cyl) 
 {
     return floppy_do_track(cyl, floppy_dir_write);
+}
+
+// Warning: Always read directly from floppy and doesn't update cache. Should only be used for debugging purposes.
+// Buffer MUST be of size floppy_dmalen.
+void floppyRawRead(unsigned cyl, unsigned char *buffer)
+{
+    floppy_read_track(cyl);
+    memcpy(floppy_dmabuf, buffer, floppy_dmalen);
 }

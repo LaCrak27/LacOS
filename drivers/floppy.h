@@ -47,3 +47,4 @@ typedef enum
 
 int initFloppy();
 char isFloppyAvailable();
+void floppyRawRead(unsigned cyl, unsigned char *buffer);

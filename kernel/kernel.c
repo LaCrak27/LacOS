@@ -14,13 +14,18 @@ void main()
     clear_screen();
     println("LacOS v0.3");
     println("(c) LaCrak27 2023-2024. No rights reserved.");
+    print("Initializing IDT...          ");
+    initIdt();
+    set_fg(GREEN);
+    println("Done!");
+    set_fg(GRAY);
     print("Initializing timer...        ");
     initTimer();
     set_fg(GREEN);
     println("Done!");
     set_fg(GRAY);
-    print("Initializing IDT...          ");
-    initIdt();
+    print("Initializing keyboard...     ");
+    initKeyboard();
     set_fg(GREEN);
     println("Done!");
     set_fg(GRAY);
@@ -37,13 +42,7 @@ void main()
         println("Floppy initialization failed!");
         set_fg(GRAY);
     }
-    print("Initializing keyboard...     ");
-    initKeyboard();
-    set_fg(GREEN);
-    println("Done!");
-    set_fg(GRAY);
-    unsigned char *magicNumberPointer = (char *)0x1000;
-    if (*magicNumberPointer == 0x69)
+    if (*(char *)0x1000 == 0x69) // Check if memory detection was succesful
     {
         initmm();
     }
