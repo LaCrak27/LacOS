@@ -3,6 +3,7 @@
 #include "../drivers/keyboard.h"
 #include "../interrupts/idt.h"
 #include "util.h"
+#include "debug.h"
 
 // Memory manager stuff
 // HOW IT WORKS (first fit):
@@ -86,12 +87,22 @@ void *malloc(unsigned long blockLenghth)
     {
         if (blockPointer->magicNumber != 0x69)
         {
-            except("Weird things have happened");
+            except("Malloc blockpointer pointed to invalid block.");
         }
         // The block is free and big enough!
-        if (blockPointer->isBlockFree == 1 && blockPointer->blockSize >= blockLenghth)
+        // TODO: Make it only create a block the desired size and add another one to be able to use the remaining space.
+        if (blockPointer->isBlockFree == 1 && blockPointer->blockSize > blockLenghth + sizeof(MemoryBlockHeader))
         {
+            MemoryBlockHeader *next = blockPointer + sizeof(MemoryBlockHeader) + blockLenghth;
+            writeHeader(next,
+             1,
+             blockPointer->blockSize - sizeof(MemoryBlockHeader) - blockLenghth,
+             blockPointer,
+             blockPointer->nextBlockAdress);
+            blockPointer->nextBlockAdress = next;
+            blockPointer->blockSize = blockLenghth;
             blockPointer->isBlockFree = 0;
+            next->nextBlockAdress->previousBlockAdress = next;
             break;
         }
         else if (blockPointer->nextBlockAdress == 0) // There's no next block, create one
@@ -108,7 +119,7 @@ void *malloc(unsigned long blockLenghth)
         }
         else if (blockPointer->magicNumber == 0x69) // There is a next block, and the current one isn't big enough or occupied
         {
-            blockPointer = blockPointer->nextBlockAdress; // Go to next block lol
+            blockPointer = blockPointer->nextBlockAdress;
         }
     }
     // End of block would land outside of usable memory, return null
