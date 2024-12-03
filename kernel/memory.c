@@ -90,7 +90,6 @@ void *malloc(unsigned long blockLenghth)
             except("Malloc blockpointer pointed to invalid block.");
         }
         // The block is free and big enough!
-        // TODO: Make it only create a block the desired size and add another one to be able to use the remaining space.
         if (blockPointer->isBlockFree == 1 && blockPointer->blockSize > blockLenghth + sizeof(MemoryBlockHeader))
         {
             MemoryBlockHeader *next = blockPointer + sizeof(MemoryBlockHeader) + blockLenghth;
