@@ -240,6 +240,10 @@ int sh_millis(int argc, char **argv)
 
 int sh_fdump(int argc, char **argv)
 {
+    if(!isFloppyAvailable())
+    {
+        println("Floppy not available. Please restart and try again");
+    }
     int paged = FALSE;
     int cyl = -1;
     for(int i = 1; i < argc; i++) // First arg is name of command
@@ -264,7 +268,7 @@ int sh_fdump(int argc, char **argv)
     }
     println("Reading from floppy, please wait...");
     unsigned char *fd = malloc(floppy_dmalen * sizeof(unsigned char));
-    floppyRawRead(cyl, fd);
+    floppyRawReadCyl(cyl, fd);
     println("- - - - - - - - - - - - - - - CYLINDER DUMP - - - - - - - - - - - - - - -");
     println("C.ADDR  |  00  01  02  03  04  55  06  07  08  09  0A  0B  0C  0D  0E  0F");
     println("-------------------------------------------------------------------------");

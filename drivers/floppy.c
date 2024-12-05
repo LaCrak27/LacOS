@@ -333,7 +333,6 @@ static int floppy_dma_init(floppy_dir dir)
 //
 // It retries (a lot of times) on all errors except write-protection
 // which is normally caused by mechanical switch on the disk.
-//
 int floppy_do_track(unsigned cyl, floppy_dir dir)
 {
     irqReceived = FALSE;
@@ -461,7 +460,7 @@ int floppy_write_track(unsigned cyl)
 
 // Warning: Always read directly from floppy and doesn't update cache. Should only be used for debugging purposes.
 // Buffer MUST be of size floppy_dmalen.
-void floppyRawRead(unsigned cyl, unsigned char *buffer)
+void floppyRawReadCyl(unsigned cyl, unsigned char *buffer)
 {
     floppy_read_track(cyl);
     memcpy(floppy_dmabuf, buffer, floppy_dmalen);

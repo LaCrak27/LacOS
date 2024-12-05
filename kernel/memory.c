@@ -78,30 +78,27 @@ void writeHeader(MemoryBlockHeader *adress, unsigned char isFree, unsigned long 
 // Returns a NULL pointer on failure.
 void *malloc(unsigned long blockLenghth)
 {
-    if (blockLenghth == 0 || blockLenghth > memSize)
-    {
-        return NULL;
-    }
+    if (blockLenghth == 0 || blockLenghth > memSize) return NULL;
     MemoryBlockHeader *blockPointer = (MemoryBlockHeader *)(unsigned long)memStartAdress;
     while (1)
     {
-        if (blockPointer->magicNumber != 0x69)
+        if (blockPointer->magicNumber != 0x69) 
         {
             except("Malloc blockpointer pointed to invalid block.");
         }
-        // The block is free and big enough!
-        if (blockPointer->isBlockFree == 1 && blockPointer->blockSize > blockLenghth + sizeof(MemoryBlockHeader))
+        // The block is free, big enough and there is a next block
+        if (blockPointer->isBlockFree == 1 && blockPointer->blockSize > blockLenghth + sizeof(MemoryBlockHeader) && blockPointer->nextBlockAdress != 0)
         {
-            MemoryBlockHeader *next = blockPointer + sizeof(MemoryBlockHeader) + blockLenghth;
-            writeHeader(next,
+            MemoryBlockHeader *new = (MemoryBlockHeader *)(((char *) blockPointer) + sizeof(MemoryBlockHeader) + blockLenghth);
+            writeHeader(new,
              1,
-             blockPointer->blockSize - sizeof(MemoryBlockHeader) - blockLenghth,
+             blockPointer->blockSize - blockLenghth - sizeof(MemoryBlockHeader),
              blockPointer,
              blockPointer->nextBlockAdress);
-            blockPointer->nextBlockAdress = next;
+            blockPointer->nextBlockAdress->previousBlockAdress = new;
+            blockPointer->nextBlockAdress = new;
             blockPointer->blockSize = blockLenghth;
             blockPointer->isBlockFree = 0;
-            next->nextBlockAdress->previousBlockAdress = next;
             break;
         }
         else if (blockPointer->nextBlockAdress == 0) // There's no next block, create one
@@ -119,6 +116,8 @@ void *malloc(unsigned long blockLenghth)
         else if (blockPointer->magicNumber == 0x69) // There is a next block, and the current one isn't big enough or occupied
         {
             blockPointer = blockPointer->nextBlockAdress;
+            /*println(uitoh(blockPointer));
+            println(uctoh(*(unsigned char *)blockPointer));*/
         }
     }
     // End of block would land outside of usable memory, return null
