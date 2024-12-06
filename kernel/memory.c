@@ -55,9 +55,6 @@ void initmm()
     print("Total usable memory size: ");
     print(uitoa(memSize / 1024));
     println("kb");
-
-    print("Starting at address: ");
-    println(uitoh(memStartAdress));
     // Write the base header at start of memory
     writeHeader((MemoryBlockHeader *)(unsigned long)memStartAdress, 0, 0, (MemoryBlockHeader *)0, ((MemoryBlockHeader *)0));
     memoryInitialized = 1;
