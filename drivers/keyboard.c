@@ -1,44 +1,11 @@
 #include "../interrupts/idt.h"
 #include "../kernel/low_level.h"
 #include "screen.h"
+#include "keyboard.h"
 
 typedef struct InterruptRegisters InterruptRegisters;
 
 void onKeyPress(char scanCode, char press);
-
-const unsigned long UNKNOWN = 0xFFFFFFFF;
-const unsigned long ESC = 0xFFFFFFFF - 1;
-const unsigned long CTRL = 0xFFFFFFFF - 2;
-const unsigned long LSHFT = 0xFFFFFFFF - 3;
-const unsigned long RSHFT = 0xFFFFFFFF - 4;
-const unsigned long ALT = 0xFFFFFFFF - 5;
-const unsigned long F1 = 0xFFFFFFFF - 6;
-const unsigned long F2 = 0xFFFFFFFF - 7;
-const unsigned long F3 = 0xFFFFFFFF - 8;
-const unsigned long F4 = 0xFFFFFFFF - 9;
-const unsigned long F5 = 0xFFFFFFFF - 10;
-const unsigned long F6 = 0xFFFFFFFF - 11;
-const unsigned long F7 = 0xFFFFFFFF - 12;
-const unsigned long F8 = 0xFFFFFFFF - 13;
-const unsigned long F9 = 0xFFFFFFFF - 14;
-const unsigned long F10 = 0xFFFFFFFF - 15;
-const unsigned long F11 = 0xFFFFFFFF - 16;
-const unsigned long F12 = 0xFFFFFFFF - 17;
-const unsigned long SCRLCK = 0xFFFFFFFF - 18;
-const unsigned long HOME = 0xFFFFFFFF - 19;
-const unsigned long UP = 0xFFFFFFFF - 20;
-const unsigned long LEFT = 0xFFFFFFFF - 21;
-const unsigned long RIGHT = 0xFFFFFFFF - 22;
-const unsigned long DOWN = 0xFFFFFFFF - 23;
-const unsigned long PGUP = 0xFFFFFFFF - 24;
-const unsigned long PGDOWN = 0xFFFFFFFF - 25;
-const unsigned long END = 0xFFFFFFFF - 26;
-const unsigned long INS = 0xFFFFFFFF - 27;
-const unsigned long DEL = 0xFFFFFFFF - 28;
-const unsigned long CAPS = 0xFFFFFFFF - 29;
-const unsigned long NONE = 0xFFFFFFFF - 30;
-const unsigned long ALTGR = 0xFFFFFFFF - 31;
-const unsigned long NUMLCK = 0xFFFFFFFF - 32;
 
 const unsigned long lowercase[128] = {
     UNKNOWN, ESC, '1', '2', '3', '4', '5', '6', '7', '8',
@@ -63,16 +30,16 @@ const unsigned long uppercase[128] = {
     UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN};
 
 char waitingForKey = 0;
-char readChar;
-char readKey()
+char resKey;
+unsigned long readKey()
 {
     waitingForKey = 1;
-    readChar = 0;
+    resKey = 0;
     while (waitingForKey)
     {
         // Wait for key lol
     }
-    return readChar;
+    return resKey;
 }
 
 void keyboardHandler(InterruptRegisters *regs)
@@ -120,12 +87,12 @@ void onKeyPress(char scanCode, char press)
         {
             if (capsOn || capsLock)
             {
-                readChar = (uppercase[scanCode]);
+                resKey = (uppercase[scanCode]);
                 waitingForKey = 0;
             }
             else
             {
-                readChar = (lowercase[scanCode]);
+                resKey = (lowercase[scanCode]);
                 waitingForKey = 0;
             }
         }

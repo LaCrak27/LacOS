@@ -133,11 +133,7 @@ void free(void *ptr)
 {
     MemoryBlockHeader *blockPtr = (MemoryBlockHeader *)((char *)ptr - sizeof(MemoryBlockHeader)); // Get pointer to header instead of content
 
-    if (blockPtr->magicNumber != 0x69)
-    {
-        except("Free called on an invalid adress.");
-    }
-
+    if (blockPtr->magicNumber != 0x69) except("Free called on an invalid adress.");
     if (blockPtr->isBlockFree == 0)
     {
         blockPtr->isBlockFree = 1;

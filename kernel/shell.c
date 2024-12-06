@@ -26,10 +26,9 @@ char *builtin_cmds[] = {
     "echo",
     "millis",
     "fdump",
-    NULL
-};
+    NULL};
 
-int (*builtin_func[]) (int, char **) = {
+int (*builtin_func[])(int, char **) = {
     &sh_cls,
     &sh_setfg,
     &sh_setbg,
@@ -37,8 +36,7 @@ int (*builtin_func[]) (int, char **) = {
     &sh_slp,
     &sh_echo,
     &sh_millis,
-    &sh_fdump
-};
+    &sh_fdump};
 
 void initShell()
 {
@@ -48,13 +46,11 @@ void initShell()
     int status;
     while (1)
     {
-        
-        print("$>");
         line = readLine();
         args = strsplt(line, ' ');
         if (line[0] != 0) // If line is not null, process command, otherwise just make new line
         {
-            int argc = arrlen((void**)args);
+            int argc = arrlen((void **)args);
             execLine(argc, args);
         }
         free(line);
@@ -64,6 +60,7 @@ void initShell()
 
 char *readLine()
 {
+    print("$>");
     int currentLineLenght = 0;
     char *lineContent = (char *)malloc(sizeof(char) * (MAX_COLS - 3)); // Allocate one line worth of data
     if (!lineContent)
@@ -73,10 +70,10 @@ char *readLine()
     memset(lineContent, 0, (MAX_COLS - 3) * sizeof(char)); // Clear buffer memory
     while (1)
     {
-        char pressedKey = readKey();
+        unsigned long pressedKey = readKey();
         if (pressedKey == '\b')
         {
-            if (get_cursor_col() <= 2) // 0-indexed
+            if (get_cursor_col() <= 2) // 0-indexed, if we get to the $>
             {
                 continue;
             }
@@ -92,6 +89,10 @@ char *readLine()
         }
         if (currentLineLenght < (MAX_COLS - 3))
         {
+            if(pressedKey == UP)
+            {
+                //TODO: Handle putting the last command here (prob keep a constant pointer to lastCommand and just make it print that (char per char))
+            }
             printc(pressedKey);
             lineContent[currentLineLenght] = pressedKey;
             currentLineLenght++;
@@ -103,7 +104,7 @@ int execLine(int argc, char **argv)
 {
     int retCode = 1;
     int i = 0;
-    while(builtin_cmds[i] != NULL)
+    while (builtin_cmds[i] != NULL)
     {
         if (strcmp(builtin_cmds[i], argv[0]))
         {
@@ -142,19 +143,18 @@ char *colors[] = {
     "lightred",
     "lightpurple",
     "yellow",
-    "white"
-};
+    "white"};
 
 int sh_setfg(int argc, char **argv)
 {
-    if(argc != 2)
+    if (argc != 2)
     {
         println("Incorrect usage. Correct usage is 'setfg <color>', where <color> can be:\nblack\nblue\ngreen\ncyan\nred\npurple\nbrown\ngray\ndarkgray\nlightblue\nlightgreen\nlightcyan\nlightred\nlightpurple\nyellow\nwhite");
         return 1;
     }
     for (char i = 0; i < 16; i++)
     {
-        if(strcmp(argv[1], colors[i]))
+        if (strcmp(argv[1], colors[i]))
         {
             set_fg(i);
             print("Foreground succesfully set to ");
@@ -172,14 +172,14 @@ int sh_setfg(int argc, char **argv)
 
 int sh_setbg(int argc, char **argv)
 {
-    if(argc != 2)
+    if (argc != 2)
     {
         println("Incorrect usage. Correct usage is 'setbg <color>', where <color> can be:\nblack\nblue\ngreen\ncyan\nred\npurple\nbrown\ngray\ndarkgray\nlightblue\nlightgreen\nlightcyan\nlightred\nlightpurple\nyellow\nwhite");
         return 1;
     }
     for (char i = 0; i < 16; i++)
     {
-        if(strcmp(argv[1], colors[i]))
+        if (strcmp(argv[1], colors[i]))
         {
             set_bg(i);
             print("Background succesfully set to ");
@@ -208,7 +208,7 @@ int sh_hlp(int argc, char **argv)
 int sh_slp(int argc, char **argv)
 {
     int millis = atoi(argv[1]);
-    if(millis < 0)
+    if (millis < 0)
     {
         println("Incorrect usage. Correct usage is 'sleep <millis>', where millis is the number of milliseconds to sleep.");
         return 1;
@@ -240,30 +240,31 @@ int sh_millis(int argc, char **argv)
 
 int sh_fdump(int argc, char **argv)
 {
-    if(!isFloppyAvailable())
+    if (!isFloppyAvailable())
     {
         println("Floppy not available. Please restart and try again");
+        return 0xFF;
     }
     int paged = FALSE;
     int cyl = -1;
-    for(int i = 1; i < argc; i++) // First arg is name of command
+    for (int i = 1; i < argc; i++) // First arg is name of command
     {
-        if(strcmp(argv[i], "-paged"))
+        if (strcmp(argv[i], "-paged"))
         {
             paged = TRUE;
         }
         else
         {
             int readCyl = atoi(argv[i]);
-            if(readCyl >= 0)
+            if (readCyl >= 0)
             {
                 cyl = readCyl;
             }
         }
     }
-    if(cyl < 0)
+    if (cyl < 0)
     {
-        println("Incorrect usage, correct usage: fdump <cyl> [-paged].");
+        println("Incorrect usage, correct usage: fdump <cyl> [-paged].\nIf using paged view, press q to abort.");
         return 1;
     }
     println("Reading from floppy, please wait...");
@@ -272,18 +273,27 @@ int sh_fdump(int argc, char **argv)
     println("- - - - - - - - - - - - - - - CYLINDER DUMP - - - - - - - - - - - - - - -");
     println("C.ADDR  |  00  01  02  03  04  55  06  07  08  09  0A  0B  0C  0D  0E  0F");
     println("-------------------------------------------------------------------------");
-    for(int i = 0; i < floppy_dmalen; i += 16)
+    for (int i = 0; i < floppy_dmalen; i += 16)
     {
         print(uitohp(i, 4));
         print("  |");
         for (int j = 0; j < 16; j++)
         {
             print("  ");
-            print(uctoh(fd[i+j]));
+            print(uctoh(fd[i + j]));
         }
-        if(paged) readKey();
+        if (paged)
+        {
+            if (readKey() == 'q')
+            {
+                println("\nq was pressed. Aborting...");
+                free(fd);
+                return 0;
+            }
+        }
         printc('\n');
     }
     free(fd);
+    println("-------------------------------------------------------------------------");
     return 0;
 }
