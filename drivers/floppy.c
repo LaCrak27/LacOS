@@ -79,7 +79,7 @@ int initFloppy()
     floppy_write_cmd(VERSION);
     if(floppy_read_data() != 0x90)
     {
-        println("Unsupported controller (how on earth did you even get a computer this old), stuff may fail, continue at your own risk");
+        println("Unsupported controller (how on earth did you even get a computer this old)\nStuff may fail, continue at your own risk");
     }
     println("Configuring...");
     floppy_write_cmd(SPECIFY); // Enable IRQs and stuff

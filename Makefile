@@ -2,7 +2,7 @@ C_SOURCES = $(wildcard kernel/*.c drivers/*.c interrupts/*.c)
 OBJ = ${C_SOURCES:.c=.o}
 SOBJ = ${ASM_SOURCES:.asm=.o}
 HEADERS = $(wildcard kernel/*.h drivers/*.h interrupts/*.h)
-ASM_SOURCES = $(wildcard interrupts/*.asm)
+ASM_SOURCES = $(wildcard interrupts/*.asm kernel/*.asm)
 
 all: clean LacOS.img
 bochsdbg: clean LacOS.bin
@@ -20,10 +20,8 @@ LacOS.bin: kernel.bin boot_sect.bin
 	cat boot_sect.bin kernel.bin > LacOS.bin
 boot_sect.bin: boot/boot_sect.asm
 	nasm boot/boot_sect.asm -f bin -o boot_sect.bin
-kernel.bin: kernel/kernel_entry.o kernel/kernel.o ${OBJ} ${SOBJ}
+kernel.bin: ${OBJ} ${SOBJ}
 	ld -m elf_i386 -o $@ -Ttext 0x101F0 $^ --oformat binary
-kernel/kernel_entry.o: kernel/kernel_entry.asm
-	nasm kernel/kernel_entry.asm -f elf -o kernel/kernel_entry.o
 clean:
 	rm -fr *.bin *.dis *.o *.ini *.img
 	rm -fr kernel/*.o boot/*.bin drivers/*.o
