@@ -91,8 +91,9 @@ char *readLine()
         }
         if (currentLineLenght < (MAX_COLS - 3))
         {
-            if(pressedKey == UP)
+            switch (pressedKey)
             {
+            case UP:
                 strcpy(lastLine, lineContent);
                 while (get_cursor_col() > 2)
                 {
@@ -100,6 +101,9 @@ char *readLine()
                 }
                 currentLineLenght = strlen(lineContent);
                 print(lineContent);
+                break;
+            default:
+                break;
             }
             if(pressedKey >> 8 == 0) // If Key isn't a special char
             {
