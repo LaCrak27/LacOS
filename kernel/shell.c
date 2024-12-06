@@ -93,9 +93,12 @@ char *readLine()
             {
                 //TODO: Handle putting the last command here (prob keep a constant pointer to lastCommand and just make it print that (char per char))
             }
-            printc(pressedKey);
-            lineContent[currentLineLenght] = pressedKey;
-            currentLineLenght++;
+            if(pressedKey >> 8 == 0) // If Key isn't a special char
+            {
+                printc(pressedKey);
+                lineContent[currentLineLenght] = pressedKey;
+                currentLineLenght++;
+            }
         }
     }
 }
