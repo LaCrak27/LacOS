@@ -10,6 +10,7 @@
 void memcpy(char *source, char *dest, int n);
 int strlen(char* str);
 int strcmp(char *str1, char *str2);
+void strcpy(char *source, char *dest);
 void memset(void *dest, char val, unsigned long n);
 void trim(char *str, char trim);
 char **strsplt(char *str, char delim);

@@ -38,6 +38,7 @@ int (*builtin_func[])(int, char **) = {
     &sh_millis,
     &sh_fdump};
 
+char lastLine[MAX_COLS - 2] = {0};
 void initShell()
 {
     println("Shell started correctly!");
@@ -53,6 +54,7 @@ void initShell()
             int argc = arrlen((void **)args);
             execLine(argc, args);
         }
+        strcpy(line, lastLine);
         free(line);
         freearr_str(args);
     }
@@ -62,7 +64,7 @@ char *readLine()
 {
     print("$>");
     int currentLineLenght = 0;
-    char *lineContent = (char *)malloc(sizeof(char) * (MAX_COLS - 3)); // Allocate one line worth of data
+    char *lineContent = (char *)malloc(sizeof(char) * (MAX_COLS - 2)); // Allocate one line worth of data
     if (!lineContent)
     {
         except("Error allocating line.");
@@ -91,7 +93,13 @@ char *readLine()
         {
             if(pressedKey == UP)
             {
-                //TODO: Handle putting the last command here (prob keep a constant pointer to lastCommand and just make it print that (char per char))
+                strcpy(lastLine, lineContent);
+                while (get_cursor_col() > 2)
+                {
+                    erase_char();
+                }
+                currentLineLenght = strlen(lineContent);
+                print(lineContent);
             }
             if(pressedKey >> 8 == 0) // If Key isn't a special char
             {

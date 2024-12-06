@@ -33,6 +33,7 @@ void memset(void *dest, char val, unsigned long n)
 
 // Str utils
 
+// Gets length of null terminated string.
 int strlen(char *str)
 {
     int i = 0;
@@ -61,22 +62,33 @@ void trim(char *str, char trim)
     }
 }
 
+// Compares str1 and str2.
 int strcmp(char *str1, char *str2)
 {
-    int len1 = strlen(str1);
-    int len2 = strlen(str2);
-    if (len1 != len2)
-    {
-        return 0;
-    }
-    for (int i = 0; i < len1; i++)
+    int i = 0;
+    for (; str1[i] != NULL; i++)
     {
         if (str1[i] != str2[i])
         {
             return 0;
         }
     }
+    if (str2[i] != NULL)
+        return 0;
     return 1;
+}
+
+// Copies source into dest
+void strcpy(char *source, char *dest)
+{
+    int i = 0;
+    while (source[i] != NULL)
+    {
+        dest[i] = source[i];
+        i++;
+    }
+    dest[i] = NULL;
+    return;
 }
 
 // Returns an array of strings that contains the different parts of the string that str has,
@@ -108,7 +120,7 @@ char **strsplt(char *str, char delim)
     int currentElement = 0; // Current element index
     int currentSize = 0;    // Current element size
     i = 0;
-    int j = 0;              // Segment index
+    int j = 0; // Segment index
     while (str[i] != 0)
     {
         if (str[i] == delim)
@@ -149,18 +161,18 @@ char **strsplt(char *str, char delim)
 #define INT_DIGITS 19 // Works until 64bit
 #define UINT_DIGITS 20
 
-// Converts unsigned long to it's hex string representation.
+// Converts unsigned int to it's hex string representation.
 char *uitoh(unsigned int i)
 {
     static char buf[19];
     char *p = buf + 18; // Points to terminating 0
-    if(i == 0)
+    if (i == 0)
     {
         *--p = '0';
     }
     while (i != 0)
     {
-        if ((i % 16) <= 9) // We got a number, represent with regular 0-9
+        if ((i % 16) <= 9)
         {
             *--p = '0' + (i % 16);
         }
@@ -179,7 +191,8 @@ char *uitoh(unsigned int i)
 // Padded (0x23 & digits = 4) -> 0x0023
 char *uitohp(unsigned int i, int digits)
 {
-    if(digits > 15) digits = 15;
+    if (digits > 15)
+        digits = 15;
     static char buf[19];
     char *p = buf + 18; // Points to terminating 0
     while (i != 0)
@@ -210,7 +223,7 @@ char *uctoh(unsigned char c)
 {
     static char buf[3];
     char *p = buf + 2; // Points to terminating 0
-    for(int i = 0; i < 2; i++)
+    for (int i = 0; i < 2; i++)
     {
         if ((c % 16) <= 9) // We got a number, represent with regular 0-9
         {
@@ -292,22 +305,22 @@ int min(int a, int b)
     }
 }
 
-// Parses (unsigned) int in string str, trims leading and trailing whitespaces. 
+// Parses (unsigned) int in string str, trims leading and trailing whitespaces.
 // Returns -1 on failure (incompatible chars or out of range).
 int atoi(char *str)
 {
     trim(str, ' ');
     int res = 0;
     int i = 0;
-    while(str[i] != NULL)
+    while (str[i] != NULL)
     {
-        if(str[i] < '0' || str[i] > '9') // Character is not a number
+        if (str[i] < '0' || str[i] > '9') // Character is not a number
         {
             return -1;
         }
         else
         {
-            if(res > INT_MAX / 10)
+            if (res > INT_MAX / 10)
             {
                 return -1;
             }

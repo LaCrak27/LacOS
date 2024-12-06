@@ -29,8 +29,12 @@ const unsigned long uppercase[128] = {
     UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN,
     UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN};
 
+
 char waitingForKey = 0;
 char resKey;
+// Reads a key from the keyboard. Blocking operation.
+// The reason why it returns an unsigned long instead of a char is because the keyboard can also send special keys, and they are unsigned longs.
+// A quick check for seeing if a key is special or not is to bitshift to the right by 8 and checking if the result is zero.
 unsigned long readKey()
 {
     waitingForKey = 1;
