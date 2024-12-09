@@ -284,6 +284,7 @@ int sh_fdump(int argc, char **argv)
     }
     println("Reading from floppy, please wait...");
     unsigned char *fd = malloc(floppy_dmalen * sizeof(unsigned char));
+    if(!fd) except("Error allocating memory for dump.");
     floppyRawReadCyl(cyl, fd);
     println("- - - - - - - - - - - - - - - CYLINDER DUMP - - - - - - - - - - - - - - -");
     println("C.ADDR  |  00  01  02  03  04  55  06  07  08  09  0A  0B  0C  0D  0E  0F");

@@ -12,7 +12,7 @@
 void main()
 {
     clear_screen();
-    println("LacOS v0.3");
+    println("LacOS v0.5");
     println("(c) LaCrak27 2023-2024. No rights reserved.");
     print("Initializing IDT...          ");
     initIdt();

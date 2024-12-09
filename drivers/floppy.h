@@ -37,11 +37,11 @@ enum
     floppy_motor_off = 0,
     floppy_motor_on
 };
-typedef enum
+enum
 {
     floppy_dir_read = 1,
     floppy_dir_write = 2
-} floppy_dir;
+};
 
 #define floppy_dmalen 0x4800
 

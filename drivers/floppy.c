@@ -5,6 +5,7 @@
 #include "../interrupts/idt.h"
 #include "timer.h"
 #include "../kernel/debug.h"
+#include "keyboard.h"
 
 void floppy_irq_handler();
 void wait_irq();
@@ -15,8 +16,8 @@ void floppy_configure();
 int floppy_calibrate();
 int floppy_reset();
 void floppy_motor(int onoff);
-static int floppy_dma_init(floppy_dir dir);
-int floppy_do_track(unsigned cyl, floppy_dir dir);
+static int floppy_dma_init(int dir);
+int floppy_do_track(unsigned cyl, int dir);
 int floppy_read_track(unsigned cyl);
 int floppy_write_track(unsigned cyl);
 void floppy_motor_kill();
@@ -282,7 +283,7 @@ int floppy_seek(unsigned cyli, int head)
     return -1;
 }
 
-static int floppy_dma_init(floppy_dir dir)
+static int floppy_dma_init(int dir)
 {
     union
     {
@@ -333,7 +334,7 @@ static int floppy_dma_init(floppy_dir dir)
 //
 // It retries (a lot of times) on all errors except write-protection
 // which is normally caused by mechanical switch on the disk.
-int floppy_do_track(unsigned cyl, floppy_dir dir)
+int floppy_do_track(unsigned cyl, int dir)
 {
     irqReceived = FALSE;
     
@@ -463,5 +464,7 @@ int floppy_write_track(unsigned cyl)
 void floppyRawReadCyl(unsigned cyl, unsigned char *buffer)
 {
     floppy_read_track(cyl);
+    println(uitoh(buffer));
+    readKey();
     memcpy(floppy_dmabuf, buffer, floppy_dmalen);
 }

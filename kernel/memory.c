@@ -75,39 +75,48 @@ void writeHeader(MemoryBlockHeader *adress, unsigned char isFree, unsigned long 
 // Returns a NULL pointer on failure.
 void *malloc(unsigned long blockLenghth)
 {
-    if (blockLenghth == 0 || blockLenghth > memSize) return NULL;
+    if (blockLenghth == 0 || blockLenghth > memSize)
+        return NULL;
     MemoryBlockHeader *blockPointer = (MemoryBlockHeader *)(unsigned long)memStartAdress;
     while (1)
     {
-        if (blockPointer->magicNumber != 0x69) 
+        if (blockPointer->magicNumber != 0x69)
         {
             except("Malloc blockpointer pointed to invalid block.");
         }
         // The block is free, big enough and there is a next block
         if (blockPointer->isBlockFree == 1 && blockPointer->blockSize > blockLenghth + sizeof(MemoryBlockHeader) && blockPointer->nextBlockAdress != 0)
         {
-            MemoryBlockHeader *new = (MemoryBlockHeader *)(((char *) blockPointer) + sizeof(MemoryBlockHeader) + blockLenghth);
+            MemoryBlockHeader *new = (MemoryBlockHeader *)(((char *)blockPointer) + sizeof(MemoryBlockHeader) + blockLenghth);
             writeHeader(new,
-             1,
-             blockPointer->blockSize - blockLenghth - sizeof(MemoryBlockHeader),
-             blockPointer,
-             blockPointer->nextBlockAdress);
+                        1,
+                        blockPointer->blockSize - blockLenghth - sizeof(MemoryBlockHeader),
+                        blockPointer,
+                        blockPointer->nextBlockAdress);
             blockPointer->nextBlockAdress->previousBlockAdress = new;
             blockPointer->nextBlockAdress = new;
             blockPointer->blockSize = blockLenghth;
             blockPointer->isBlockFree = 0;
             break;
         }
-        else if (blockPointer->nextBlockAdress == 0) // There's no next block, create one
+        else if (blockPointer->nextBlockAdress == 0) // There's no next block, create one if it's used or extend it if not used
         {
-            MemoryBlockHeader *newBlockPointer = (MemoryBlockHeader *)((char *)blockPointer + blockPointer->blockSize + sizeof(MemoryBlockHeader));
-            newBlockPointer->blockSize = blockLenghth;
-            newBlockPointer->isBlockFree = 0;
-            newBlockPointer->nextBlockAdress = 0;
-            newBlockPointer->previousBlockAdress = blockPointer;
-            newBlockPointer->magicNumber = 0x69;
-            blockPointer->nextBlockAdress = newBlockPointer;
-            blockPointer = newBlockPointer;
+            if (blockPointer->isBlockFree)
+            {
+                blockPointer->blockSize = blockLenghth;
+                blockPointer->isBlockFree = 0;
+            }
+            else
+            {
+                MemoryBlockHeader *newBlockPointer = (MemoryBlockHeader *)((char *)blockPointer + blockPointer->blockSize + sizeof(MemoryBlockHeader));
+                newBlockPointer->blockSize = blockLenghth;
+                newBlockPointer->isBlockFree = 0;
+                newBlockPointer->nextBlockAdress = 0;
+                newBlockPointer->previousBlockAdress = blockPointer;
+                newBlockPointer->magicNumber = 0x69;
+                blockPointer->nextBlockAdress = newBlockPointer;
+                blockPointer = newBlockPointer;
+            }
             break;
         }
         else if (blockPointer->magicNumber == 0x69) // There is a next block, and the current one isn't big enough or occupied
@@ -130,7 +139,8 @@ void free(void *ptr)
 {
     MemoryBlockHeader *blockPtr = (MemoryBlockHeader *)((char *)ptr - sizeof(MemoryBlockHeader)); // Get pointer to header instead of content
 
-    if (blockPtr->magicNumber != 0x69) except("Free called on an invalid adress.");
+    if (blockPtr->magicNumber != 0x69)
+        except("Free called on an invalid adress.");
     if (blockPtr->isBlockFree == 0)
     {
         blockPtr->isBlockFree = 1;
