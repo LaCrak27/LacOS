@@ -33,6 +33,6 @@
 #define NUMLCK (0xFFFFFFFF - 32)
 
 typedef struct InterruptRegisters InterruptRegisters;
-unsigned long readKey();
-void initKeyboard();
-void keyboardHandler(InterruptRegisters *regs);
+unsigned long read_key();
+void init_keyboard();
+void keyboard_handler(InterruptRegisters *regs);

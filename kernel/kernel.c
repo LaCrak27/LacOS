@@ -13,35 +13,35 @@ void main()
 {
     clear_screen();
     // ASCII Art
-println(" __         _____     ____");
-println("/\\ \\       /\  __ \\   /\  ___\\");
-println("\\ \\ \\____  \\ \\  __ \\  \\ \\ \\____");
-println(" \\ \\_____\\  \\ \\_\\ \\_\\  \\ \\_____\\");
-println("  \\/_____/   \\/_/\\/_/   \\/_____/");
-println("");
-println(" ______     _____");
-println("/\\  __ \\   /\  ___\\");
-println("\\ \\ \\_\\ \\  \\ \\___  \\");
-println(" \\ \\_____\\  \\/\\_____\\");
-println("  \\/_____/   \\/_____/    v0.5");
+    println(" __         ______     ______");
+    println("/\\ \\       /\\  __ \\   /\\  ___\\");
+    println("\\ \\ \\____  \\ \\  __ \\  \\ \\ \\____");
+    println(" \\ \\_____\\  \\ \\_\\ \\_\\  \\ \\_____\\");
+    println("  \\/_____/   \\/_/\\/_/   \\/_____/");
+    println("");
+    println(" ______     _____");
+    println("/\\  __ \\   /\\  ___\\");
+    println("\\ \\ \\_\\ \\  \\ \\___  \\");
+    println(" \\ \\_____\\  \\/\\_____\\");
+    println("  \\/_____/   \\/_____/    v0.5");
     println("(c) LaCrak27 2023-2024. No rights reserved.");
     print("Initializing IDT...          ");
-    initIdt();
+    init_idt();
     set_fg(GREEN);
     println("Done!");
     set_fg(GRAY);
     print("Initializing timer...        ");
-    initTimer();
+    init_timer();
     set_fg(GREEN);
     println("Done!");
     set_fg(GRAY);
     print("Initializing keyboard...     ");
-    initKeyboard();
+    init_keyboard();
     set_fg(GREEN);
     println("Done!");
     set_fg(GRAY);
     println("Initializing floppy...       ");
-    if (!initFloppy())
+    if (!init_floppy())
     {
         set_fg(GREEN);
         println("Floppy initialization done!");
@@ -63,6 +63,6 @@ println("  \\/_____/   \\/_____/    v0.5");
     }
     while (1) // Loop in case we exit shell somehow
     {
-        initShell();
+        init_shell();
     }
 }

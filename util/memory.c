@@ -23,11 +23,13 @@
 // Private function, types and variable declarations:
 
 typedef struct MemoryBlockHeader MemoryBlockHeader;
-void writeHeader(struct MemoryBlockHeader *adress,
+void writeHeader(MemoryBlockHeader *adress,
                  unsigned char isFree,
                  unsigned long blockSize,
                  MemoryBlockHeader *previousBlockAdress,
                  MemoryBlockHeader *nextBlockAdress);
+
+MemoryBlockHeader *get_block(void *ptr);
 
 static unsigned long long memSize = 0;
 static unsigned long long memStartAdress = 0;
@@ -73,9 +75,9 @@ void writeHeader(MemoryBlockHeader *adress, unsigned char isFree, unsigned long 
 // Allocates blockLength bytes of memory, returning a void pointer to it.
 // Keep in mind the contents of the memory returned may be garbage.
 // Returns a NULL pointer on failure.
-void *malloc(unsigned long blockLenghth)
+void *malloc(unsigned long blockLength)
 {
-    if (blockLenghth == 0 || blockLenghth > memSize)
+    if (blockLength == 0 || blockLength > memSize)
         return NULL;
     MemoryBlockHeader *blockPointer = (MemoryBlockHeader *)(unsigned long)memStartAdress;
     while (1)
@@ -85,17 +87,17 @@ void *malloc(unsigned long blockLenghth)
             except("Malloc blockpointer pointed to invalid block.");
         }
         // The block is free, big enough and there is a next block
-        if (blockPointer->isBlockFree == 1 && blockPointer->blockSize > blockLenghth + sizeof(MemoryBlockHeader) && blockPointer->nextBlockAdress != 0)
+        if (blockPointer->isBlockFree == 1 && blockPointer->blockSize > blockLength + sizeof(MemoryBlockHeader) && blockPointer->nextBlockAdress != 0)
         {
-            MemoryBlockHeader *new = (MemoryBlockHeader *)(((char *)blockPointer) + sizeof(MemoryBlockHeader) + blockLenghth);
+            MemoryBlockHeader *new = (MemoryBlockHeader *)(((char *)blockPointer) + sizeof(MemoryBlockHeader) + blockLength);
             writeHeader(new,
                         1,
-                        blockPointer->blockSize - blockLenghth - sizeof(MemoryBlockHeader),
+                        blockPointer->blockSize - blockLength - sizeof(MemoryBlockHeader),
                         blockPointer,
                         blockPointer->nextBlockAdress);
             blockPointer->nextBlockAdress->previousBlockAdress = new;
             blockPointer->nextBlockAdress = new;
-            blockPointer->blockSize = blockLenghth;
+            blockPointer->blockSize = blockLength;
             blockPointer->isBlockFree = 0;
             break;
         }
@@ -103,13 +105,13 @@ void *malloc(unsigned long blockLenghth)
         {
             if (blockPointer->isBlockFree)
             {
-                blockPointer->blockSize = blockLenghth;
+                blockPointer->blockSize = blockLength;
                 blockPointer->isBlockFree = 0;
             }
             else
             {
                 MemoryBlockHeader *newBlockPointer = (MemoryBlockHeader *)((char *)blockPointer + blockPointer->blockSize + sizeof(MemoryBlockHeader));
-                newBlockPointer->blockSize = blockLenghth;
+                newBlockPointer->blockSize = blockLength;
                 newBlockPointer->isBlockFree = 0;
                 newBlockPointer->nextBlockAdress = 0;
                 newBlockPointer->previousBlockAdress = blockPointer;
@@ -125,7 +127,7 @@ void *malloc(unsigned long blockLenghth)
         }
     }
     // End of block would land outside of usable memory, return null
-    if ((void *)((char *)blockPointer + sizeof(MemoryBlockHeader)) > (void *)(unsigned long)(memStartAdress + memSize - blockLenghth))
+    if ((void *)((char *)blockPointer + sizeof(MemoryBlockHeader)) > (void *)(unsigned long)(memStartAdress + memSize - blockLength))
     {
         blockPointer->previousBlockAdress->nextBlockAdress = (MemoryBlockHeader *) 0;
         return NULL;
@@ -136,7 +138,7 @@ void *malloc(unsigned long blockLenghth)
 // Frees block pointed to by ptr.
 void free(void *ptr)
 {
-    MemoryBlockHeader *blockPtr = (MemoryBlockHeader *)((char *)ptr - sizeof(MemoryBlockHeader)); // Get pointer to header instead of content
+    MemoryBlockHeader *blockPtr = get_block(ptr); // Get pointer to header instead of content
 
     if (blockPtr->magicNumber != 0x69)
         except("Free called on an invalid adress.");
@@ -145,6 +147,12 @@ void free(void *ptr)
         blockPtr->isBlockFree = 1;
     }
     return;
+}
+
+// Gets block from void pointer returned
+MemoryBlockHeader *get_block(void *ptr)
+{
+    return (MemoryBlockHeader *)((char *)ptr - sizeof(MemoryBlockHeader));
 }
 
 // Frees a null terminated pointer array of strings recursively
@@ -160,16 +168,23 @@ void freearr_str(char **ptr)
     return;
 }
 
-// Reallocates provided block (ptr) with a new size (blockSize).
-void *realloc(void *ptr, unsigned long blockSize)
+// Reallocates provided block (ptr) with a new size (blockLenght).
+void *realloc(void *ptr, unsigned long block_lenght)
 {
-    void *newPtr = malloc(blockSize);
-    if (newPtr != NULL) // Only free memory
+    MemoryBlockHeader *blockPtr = get_block(ptr); // Get pointer to header instead of content
+    // If this is the last block in the linked list, just extend it
+    if(blockPtr->nextBlockAdress == NULL)
     {
-        memcpy(ptr, newPtr, blockSize); // Copy contents
+        blockPtr->blockSize = block_lenght;
+        return ptr;
+    }
+    void *newptr = malloc(block_lenght);
+    if (newptr != NULL) // Only free memory
+    {
+        memcpy(ptr, newptr, block_lenght); // Copy contents
         free(ptr);
     }
-    return newPtr;
+    return newptr;
 }
 
 // Gets various stats about the heap. Mainly the allocated size, the used size, and the total memory.

@@ -5,7 +5,7 @@
 
 typedef struct InterruptRegisters InterruptRegisters;
 
-void onKeyPress(char scanCode, char press);
+void e_kpress(char scanCode, char press);
 
 const unsigned long lowercase[128] = {
     UNKNOWN, ESC, '1', '2', '3', '4', '5', '6', '7', '8',
@@ -33,7 +33,7 @@ char resKey;
 // Reads a key from the keyboard. Blocking operation.
 // The reason why it returns an unsigned long instead of a char is because the keyboard can also send special keys, and they are unsigned longs.
 // A quick check for seeing if a key is special or not is to bitshift to the right by 8 and checking if the result is zero.
-unsigned long readKey()
+unsigned long read_key()
 {
     waitingForKey = 1;
     resKey = 0;
@@ -44,20 +44,20 @@ unsigned long readKey()
     return resKey;
 }
 
-void keyboardHandler(InterruptRegisters *regs)
+void keyboard_handler(InterruptRegisters *regs)
 {
     char scanCode = inb(0x60) & 0x7F; // What key is pressed
     char press = inb(0x60) & 0x80;    // Press down, or released
 
-    onKeyPress(scanCode, press);
+    e_kpress(scanCode, press);
 }
 
-void initKeyboard()
+void init_keyboard()
 {
-    irqInstallHandler(1, &keyboardHandler);
+    irq_install_handler(1, &keyboard_handler);
 }
 
-void onKeyPress(char scanCode, char press)
+void e_kpress(char scanCode, char press)
 {
     static char capsOn = 0;
     static char capsLock = 0;

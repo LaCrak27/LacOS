@@ -22,12 +22,12 @@ struct InterruptRegisters
     unsigned long eip, csm, eflags, eseresp, ss;
 };
 
-void initIdt();
-void setIdtGate(unsigned char num, unsigned long base, unsigned short sel, unsigned char flags);
+void init_idt();
+void set_idt_gate(unsigned char num, unsigned long base, unsigned short sel, unsigned char flags);
 
 void isr_handler(struct InterruptRegisters* regs);
-void irqInstallHandler(int irq, void (*handler)(struct InterruptRegisters *r));
-void irqUninstallHandler(int irq);
+void irq_install_handler(int irq, void (*handler)(struct InterruptRegisters *r));
+void irq_uninstall_handler(int irq);
 void except_intern(char* errorMessage);
 void cli();
 void sti();

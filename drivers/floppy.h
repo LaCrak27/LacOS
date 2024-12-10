@@ -45,6 +45,6 @@ enum
 
 #define floppy_dmalen 0x4800
 
-int initFloppy();
-char isFloppyAvailable();
-void floppyRawReadCyl(unsigned cyl, unsigned char *buffer);
+int init_floppy();
+char flp_avail();
+void flp_raw_read_cyl(unsigned cyl, unsigned char *buffer);

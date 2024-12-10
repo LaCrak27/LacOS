@@ -1,1 +1,1 @@
-void initShell();
+void init_shell();

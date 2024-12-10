@@ -1,6 +1,6 @@
 #include "../util/low_level.h"
+#include "timer.h"
 
-// Source: osdev.org
 void play_sound(long nFrequence)
 {
     long Div;
@@ -28,6 +28,7 @@ void nosound()
 
 void beep()
 {
-    play_sound(1000);
+    play_sound(1500);
+    sleep(333);
     nosound();
 }

@@ -11,7 +11,7 @@ start: clean LacOS.img
 	qemu-system-x86_64.exe -fda LacOS.img
 debug: clean LacOS.bin
 	qemu-system-x86_64 -s -fda LacOS.bin
-LacOS.iso: LacOS.img # This is a DOS, the ISO was experimental. A lot of things won't work
+LacOS.iso: LacOS.img # This is a DOS, the ISO was experimental. A lot of things won't work.
 	mkisofs -pad -b LacOS.img -R -o LacOS.iso LacOS.img
 LacOS.img: LacOS.bin
 	dd if=/dev/zero of=LacOS.img bs=512 count=2880

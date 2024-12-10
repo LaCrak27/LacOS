@@ -6,8 +6,8 @@
 #include "../drivers/sound.h"
 #include "../drivers/floppy.h"
 
-char *readLine();
-int execLine(int argc, char **argv);
+char *read_line();
+int exec_line(int argc, char **argv);
 int sh_cls(int argc, char **argv);
 int sh_setfg(int argc, char **argv);
 int sh_setbg(int argc, char **argv);
@@ -42,7 +42,7 @@ int (*builtin_func[])(int, char **) = {
     &sh_meminfo};
 
 char lastLine[MAX_COLS - 2] = {0};
-void initShell()
+void init_shell()
 {
     println("Shell started correctly!");
     char *line;
@@ -50,12 +50,12 @@ void initShell()
     int status;
     while (1)
     {
-        line = readLine();
+        line = read_line();
         args = strsplt(line, ' ');
         if (line[0] != 0) // If line is not null, process command, otherwise just make new line
         {
             int argc = arrlen((void **)args);
-            execLine(argc, args);
+            exec_line(argc, args);
         }
         strcpy(line, lastLine);
         free(line);
@@ -63,7 +63,7 @@ void initShell()
     }
 }
 
-char *readLine()
+char *read_line()
 {
     print("$>");
     int currentLineLenght = 0;
@@ -75,7 +75,7 @@ char *readLine()
     memset(lineContent, 0, (MAX_COLS - 3) * sizeof(char)); // Clear buffer memory
     while (1)
     {
-        unsigned long pressedKey = readKey();
+        unsigned long pressedKey = read_key();
         if (pressedKey == '\b')
         {
             if (get_cursor_col() <= 2) // 0-indexed, if we get to the $>
@@ -118,7 +118,7 @@ char *readLine()
     }
 }
 
-int execLine(int argc, char **argv)
+int exec_line(int argc, char **argv)
 {
     int retCode = 1;
     int i = 0;
@@ -258,7 +258,7 @@ int sh_millis(int argc, char **argv)
 
 int sh_fdump(int argc, char **argv)
 {
-    if (!isFloppyAvailable())
+    if (!flp_avail())
     {
         println("Floppy not available. Please restart and try again");
         return 0xFF;
@@ -289,9 +289,9 @@ int sh_fdump(int argc, char **argv)
     unsigned char *fd = malloc(floppy_dmalen * sizeof(unsigned char));
     if (!fd)
         except("Error allocating memory for dump.");
-    floppyRawReadCyl(cyl, fd);
+    flp_raw_read_cyl(cyl, fd);
     println("- - - - - - - - - - - - - - - CYLINDER DUMP - - - - - - - - - - - - - - -");
-    println("C.ADDR  |  00  01  02  03  04  55  06  07  08  09  0A  0B  0C  0D  0E  0F");
+    println("C.ADDR  |  00  01  02  03  04  05  06  07  08  09  0A  0B  0C  0D  0E  0F");
     println("-------------------------------------------------------------------------");
     for (int i = 0; i < floppy_dmalen; i += 16)
     {
@@ -304,7 +304,7 @@ int sh_fdump(int argc, char **argv)
         }
         if (paged)
         {
-            if (readKey() == 'q')
+            if (read_key() == 'q')
             {
                 println("\nq was pressed. Aborting...");
                 free(fd);

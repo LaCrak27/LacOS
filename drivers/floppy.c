@@ -30,7 +30,7 @@ static unsigned char floppy_buffer[1474560];
 static unsigned char floppy_cyl_cache[80];
 
 static char floppy_available = 0;
-char isFloppyAvailable()
+char flp_avail()
 {
     return floppy_available;
 }
@@ -60,10 +60,9 @@ void wait_irq()
     return;
 }
 
-int initFloppy()
+int init_floppy()
 {
-    println("Installing irq handler...");
-    irqInstallHandler(6, &floppy_irq_handler);
+    irq_install_handler(6, &floppy_irq_handler);
     outb(0x70, 0x10);
     unsigned drives = inb(0x71);
     print(" - Drive type: ");
@@ -456,7 +455,7 @@ int floppy_write_track(unsigned cyl)
 
 // Warning: Always read directly from floppy and doesn't update cache. Should only be used for debugging purposes.
 // Buffer MUST be of size floppy_dmalen.
-void floppyRawReadCyl(unsigned cyl, unsigned char *buffer)
+void flp_raw_read_cyl(unsigned cyl, unsigned char *buffer)
 {
     floppy_read_track(cyl);
     memcpy(floppy_dmabuf, buffer, floppy_dmalen);

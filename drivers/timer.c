@@ -4,10 +4,10 @@
 void irq0_handler_intern(struct InterruptRegisters *regs);
 
 static unsigned long ms = 0;
-void initTimer()
+void init_timer()
 {
     ms = 0;
-    irqInstallHandler(0, &irq0_handler_intern);
+    irq_install_handler(0, &irq0_handler_intern);
     outb(0x43, 0b00110100); // Channel 0, lo/hi access, Mode 2, Binary mode
     outb(0x40, (PIT_FREQ / 1000) & 0xFF);
     outb(0x40, (((PIT_FREQ / 1000) & 0xFF00)) >> 8); // Sets PIT to 1ms intervals
