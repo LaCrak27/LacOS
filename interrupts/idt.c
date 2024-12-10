@@ -1,7 +1,7 @@
 #include "idt.h"
 #include "../drivers/screen.h"
-#include "../kernel/util.h"
-#include "../kernel/low_level.h"
+#include "../util/util.h"
+#include "../util/low_level.h"
 
 struct IdtEntryStruct idtEntries[256];
 struct IdtPointerStruct idtPtr;

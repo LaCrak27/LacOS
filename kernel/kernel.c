@@ -2,12 +2,12 @@
 #include "../drivers/floppy.h"
 #include "../drivers/timer.h"
 #include "../drivers/sound.h"
-#include "./util.h"
-#include "./memory.h"
+#include "../util/util.h"
+#include "../util/memory.h"
 #include "./shell.h"
 #include "../interrupts/idt.h"
 #include "../drivers/keyboard.h"
-#include "./debug.h"
+#include "../util/debug.h"
 
 void main()
 {

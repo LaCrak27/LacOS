@@ -1,7 +1,7 @@
-C_SOURCES = $(wildcard kernel/*.c drivers/*.c interrupts/*.c)
+C_SOURCES = $(wildcard kernel/*.c drivers/*.c interrupts/*.c util/*.c)
 OBJ = ${C_SOURCES:.c=.o}
 SOBJ = ${ASM_SOURCES:.asm=.o}
-HEADERS = $(wildcard kernel/*.h drivers/*.h interrupts/*.h)
+HEADERS = $(wildcard kernel/*.h drivers/*.h interrupts/*.h util/*.c)
 ASM_SOURCES = $(wildcard interrupts/*.asm kernel/*.asm)
 
 all: clean LacOS.img

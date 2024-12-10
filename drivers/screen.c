@@ -1,6 +1,8 @@
 #include "screen.h"
-#include "../kernel/low_level.h"
-#include "../kernel/util.h"
+#include "../util/low_level.h"
+#include "../util/util.h"
+
+char graphicsMode = TEXT;
 
 unsigned char attribute_byte = 0x07;
 // Sets the foreground text color
@@ -180,3 +182,8 @@ int handle_scrolling(int cursor_offset)
     cursor_offset -= 2 * MAX_COLS;
     return cursor_offset;
 }
+
+/*void graphics_mode_init()
+{
+
+}*/

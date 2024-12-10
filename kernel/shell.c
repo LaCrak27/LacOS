@@ -1,6 +1,6 @@
 #include "../drivers/screen.h"
-#include "./util.h"
-#include "./memory.h"
+#include "../util/util.h"
+#include "../util/memory.h"
 #include "../drivers/keyboard.h"
 #include "../drivers/timer.h"
 #include "../drivers/sound.h"
@@ -16,6 +16,7 @@ int sh_slp(int argc, char **argv);
 int sh_echo(int argc, char **argv);
 int sh_millis(int argc, char **argv);
 int sh_fdump(int argc, char **argv);
+int sh_meminfo(int argc, char **argv);
 
 char *builtin_cmds[] = {
     "clear",
@@ -26,6 +27,7 @@ char *builtin_cmds[] = {
     "echo",
     "millis",
     "fdump",
+    "meminfo",
     NULL};
 
 int (*builtin_func[])(int, char **) = {
@@ -36,7 +38,8 @@ int (*builtin_func[])(int, char **) = {
     &sh_slp,
     &sh_echo,
     &sh_millis,
-    &sh_fdump};
+    &sh_fdump,
+    &sh_meminfo};
 
 char lastLine[MAX_COLS - 2] = {0};
 void initShell()
@@ -105,7 +108,7 @@ char *readLine()
             default:
                 break;
             }
-            if(pressedKey >> 8 == 0) // If Key isn't a special char
+            if (pressedKey >> 8 == 0) // If Key isn't a special char
             {
                 printc(pressedKey);
                 lineContent[currentLineLenght] = pressedKey;
@@ -284,7 +287,8 @@ int sh_fdump(int argc, char **argv)
     }
     println("Reading from floppy, please wait...");
     unsigned char *fd = malloc(floppy_dmalen * sizeof(unsigned char));
-    if(!fd) except("Error allocating memory for dump.");
+    if (!fd)
+        except("Error allocating memory for dump.");
     floppyRawReadCyl(cyl, fd);
     println("- - - - - - - - - - - - - - - CYLINDER DUMP - - - - - - - - - - - - - - -");
     println("C.ADDR  |  00  01  02  03  04  55  06  07  08  09  0A  0B  0C  0D  0E  0F");
@@ -311,5 +315,30 @@ int sh_fdump(int argc, char **argv)
     }
     free(fd);
     println("-------------------------------------------------------------------------");
+    return 0;
+}
+
+int sh_meminfo(int argc, char **argv)
+{
+    unsigned long alloc;
+    unsigned long total;
+    unsigned long used;
+    memstat(&alloc, &used, &total);
+    println("Memory stats: ");
+    print("Available memory: ");
+    print(uitoa(total));
+    println(" bytes.");
+
+    print("Allocated memory: ");
+    print(uitoa(alloc));
+    print(" bytes (");
+    print(itoa((int)(((double)alloc * 100) / total)));
+    println("%).");
+
+    print("Used memory: ");
+    print(uitoa(used));
+    print(" bytes (");
+    print(itoa((int)(((double)used * 100) / total)));
+    println("%).");
     return 0;
 }

@@ -1,11 +1,10 @@
 #include "floppy.h"
-#include "../kernel/low_level.h"
-#include "../kernel/util.h"
+#include "../util/low_level.h"
+#include "../util/util.h"
 #include "screen.h"
 #include "../interrupts/idt.h"
 #include "timer.h"
-#include "../kernel/debug.h"
-#include "keyboard.h"
+#include "../util/debug.h"
 
 void floppy_irq_handler();
 void wait_irq();
@@ -464,7 +463,5 @@ int floppy_write_track(unsigned cyl)
 void floppyRawReadCyl(unsigned cyl, unsigned char *buffer)
 {
     floppy_read_track(cyl);
-    println(uitoh(buffer));
-    readKey();
     memcpy(floppy_dmabuf, buffer, floppy_dmalen);
 }
