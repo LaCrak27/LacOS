@@ -319,7 +319,7 @@ int sh_fdump(int argc, char **argv)
 }
 
 int sh_meminfo(int argc, char **argv)
-{
+{ 
     unsigned long alloc;
     unsigned long total;
     unsigned long used;
@@ -340,5 +340,6 @@ int sh_meminfo(int argc, char **argv)
     print(" bytes (");
     print(itoa((int)(((double)used * 100) / total)));
     println("%).");
+    
     return 0;
 }

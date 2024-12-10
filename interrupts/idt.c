@@ -104,7 +104,7 @@ char *exception_messages[32] = {
     "Debug",
     "Non Maskable Interrupt",
     "Breakpoint",
-    "Into Detected Overflow",
+    "Detected Overflow",
     "Out of Bounds",
     "Invalid Opcode",
     "No Coprocessor",
@@ -148,6 +148,9 @@ void except_intern(char* errorMessage)
 
 void syshalt(char *errorMessage)
 {
+    set_fg(WHITE);
+    set_bg(BLUE);
+    clear_screen();
     println("SYSTEM HALTED!!! Error:");
     print(errorMessage);
     disable_cursor();

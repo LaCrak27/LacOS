@@ -17,8 +17,7 @@ const unsigned long lowercase[128] = {
     '+', END, DOWN, PGDOWN, INS, DEL, UNKNOWN, UNKNOWN, UNKNOWN, F11, F12, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN,
     UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN,
     UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN,
-    UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN
-    };
+    UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN};
 
 const unsigned long uppercase[128] = {
     UNKNOWN, ESC, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '\b', '\t', 'Q', 'W', 'E', 'R',
@@ -28,7 +27,6 @@ const unsigned long uppercase[128] = {
     UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN,
     UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN,
     UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN};
-
 
 char waitingForKey = 0;
 char resKey;
@@ -48,15 +46,15 @@ unsigned long readKey()
 
 void keyboardHandler(InterruptRegisters *regs)
 {
-    char scanCode = inb(0x60) & 0x7F; //What key is pressed
-    char press = inb(0x60) & 0x80; //Press down, or released
+    char scanCode = inb(0x60) & 0x7F; // What key is pressed
+    char press = inb(0x60) & 0x80;    // Press down, or released
 
     onKeyPress(scanCode, press);
 }
 
 void initKeyboard()
 {
-    irqInstallHandler(1,&keyboardHandler);
+    irqInstallHandler(1, &keyboardHandler);
 }
 
 void onKeyPress(char scanCode, char press)
