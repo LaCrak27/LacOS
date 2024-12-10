@@ -12,7 +12,18 @@
 void main()
 {
     clear_screen();
-    println("LacOS v0.5");
+    // ASCII Art
+println(" __         _____     ____");
+println("/\\ \\       /\  __ \\   /\  ___\\");
+println("\\ \\ \\____  \\ \\  __ \\  \\ \\ \\____");
+println(" \\ \\_____\\  \\ \\_\\ \\_\\  \\ \\_____\\");
+println("  \\/_____/   \\/_/\\/_/   \\/_____/");
+println("");
+println(" ______     _____");
+println("/\\  __ \\   /\  ___\\");
+println("\\ \\ \\_\\ \\  \\ \\___  \\");
+println(" \\ \\_____\\  \\/\\_____\\");
+println("  \\/_____/   \\/_____/    v0.5");
     println("(c) LaCrak27 2023-2024. No rights reserved.");
     print("Initializing IDT...          ");
     initIdt();

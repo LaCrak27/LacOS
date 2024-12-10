@@ -75,20 +75,16 @@ int initFloppy()
         println("Unsupported drive, aborting...");
         return 1;
     }
-    println("Checking controller version...");
     floppy_write_cmd(VERSION);
     if(floppy_read_data() != 0x90)
     {
         println("Unsupported controller (how on earth did you even get a computer this old)\nStuff may fail, continue at your own risk");
     }
-    println("Configuring...");
     floppy_write_cmd(SPECIFY); // Enable IRQs and stuff
     floppy_write_cmd(0xdf); /* steprate = 3ms, unload time = 240ms */
     floppy_write_cmd(0x02); /* load time = 16ms, no-DMA = 0 */
     floppy_configure(); // Implied seek off, fifo on, polling off, threshold 15ms, no precomp
-    println("Locking config...");
     floppy_write_cmd(LOCK);
-    println("Reseting and calibrating controller...");
     if(floppy_reset())
     {
         println("Error when calibrating controller, aborting...");
