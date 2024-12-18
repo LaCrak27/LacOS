@@ -7,7 +7,7 @@ disk_load:
     mov ds, bx ; Get SS ready
 
     mov ch, 0 ; Start on cylinder 0
-    mov dx, 7 ; Load 7 cylinders    
+    mov dx, 15 ; Load 7 cylinders    
     jmp load_loop
 
 load_end:

@@ -3,6 +3,7 @@
 #include "../drivers/screen.h"
 #include "../drivers/keyboard.h"
 #include "../interrupts/idt.h"
+#include "debug.h"
 
 void except(char *msg)
 {
@@ -14,10 +15,9 @@ void except(char *msg)
 // Copies n bytes from source to dest.
 void memcpy(char *source, char *dest, int n)
 {
-    int i;
-    for (i = 0; i < n; i++)
+    for (; n != 0; n--)
     {
-        *(dest + i) = *(source + i);
+        *dest++ = *source++;
     }
 }
 
@@ -343,4 +343,16 @@ int arrlen(void **arr)
         i++;
     }
     return i;
+}
+
+// Reboots the machine
+void reboot()
+{
+    unsigned char good = 0x02;
+    while (good & 0x02)
+        good = inb(0x64);
+    outb(0x64, 0xFE);
+    while (1)
+    {
+    }
 }

@@ -23,3 +23,13 @@ void outw(unsigned short port, unsigned short data)
 {
     asm volatile("out %%ax, %%dx" : : "a" (data), "d" (port));
 }
+
+void cli()
+{
+    asm volatile("cli");
+}
+
+void sti()
+{
+    asm volatile("sti");
+}

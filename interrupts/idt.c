@@ -2,6 +2,7 @@
 #include "../drivers/screen.h"
 #include "../util/util.h"
 #include "../util/low_level.h"
+#include "../util/debug.h"
 
 struct IdtEntryStruct idtEntries[256];
 struct IdtPointerStruct idtPtr;
@@ -33,55 +34,55 @@ void init_idt()
     outb(0x21, 0x0);
     outb(0xA1, 0x0);
 
-    set_idt_gate(0, (unsigned long)isr0, 0x08, 0x8E);
-    set_idt_gate(1, (unsigned long)isr1, 0x08, 0x8E);
-    set_idt_gate(2, (unsigned long)isr2, 0x08, 0x8E);
-    set_idt_gate(3, (unsigned long)isr3, 0x08, 0x8E);
-    set_idt_gate(4, (unsigned long)isr4, 0x08, 0x8E);
-    set_idt_gate(5, (unsigned long)isr5, 0x08, 0x8E);
-    set_idt_gate(6, (unsigned long)isr6, 0x08, 0x8E);
-    set_idt_gate(7, (unsigned long)isr7, 0x08, 0x8E);
-    set_idt_gate(8, (unsigned long)isr8, 0x08, 0x8E);
-    set_idt_gate(9, (unsigned long)isr9, 0x08, 0x8E);
-    set_idt_gate(10, (unsigned long)isr10, 0x08, 0x8E);
-    set_idt_gate(11, (unsigned long)isr11, 0x08, 0x8E);
-    set_idt_gate(12, (unsigned long)isr12, 0x08, 0x8E);
-    set_idt_gate(13, (unsigned long)isr13, 0x08, 0x8E);
-    set_idt_gate(14, (unsigned long)isr14, 0x08, 0x8E);
-    set_idt_gate(15, (unsigned long)isr15, 0x08, 0x8E);
-    set_idt_gate(16, (unsigned long)isr16, 0x08, 0x8E);
-    set_idt_gate(17, (unsigned long)isr17, 0x08, 0x8E);
-    set_idt_gate(18, (unsigned long)isr18, 0x08, 0x8E);
-    set_idt_gate(19, (unsigned long)isr19, 0x08, 0x8E);
-    set_idt_gate(20, (unsigned long)isr20, 0x08, 0x8E);
-    set_idt_gate(21, (unsigned long)isr21, 0x08, 0x8E);
-    set_idt_gate(22, (unsigned long)isr22, 0x08, 0x8E);
-    set_idt_gate(23, (unsigned long)isr23, 0x08, 0x8E);
-    set_idt_gate(24, (unsigned long)isr24, 0x08, 0x8E);
-    set_idt_gate(25, (unsigned long)isr25, 0x08, 0x8E);
-    set_idt_gate(26, (unsigned long)isr26, 0x08, 0x8E);
-    set_idt_gate(27, (unsigned long)isr27, 0x08, 0x8E);
-    set_idt_gate(28, (unsigned long)isr28, 0x08, 0x8E);
-    set_idt_gate(29, (unsigned long)isr29, 0x08, 0x8E);
-    set_idt_gate(30, (unsigned long)isr30, 0x08, 0x8E);
-    set_idt_gate(31, (unsigned long)isr31, 0x08, 0x8E);
+    set_idt_gate(0, (unsigned long)&isr0, 0x08, 0x8E);
+    set_idt_gate(1, (unsigned long)&isr1, 0x08, 0x8E);
+    set_idt_gate(2, (unsigned long)&isr2, 0x08, 0x8E);
+    set_idt_gate(3, (unsigned long)&isr3, 0x08, 0x8E);
+    set_idt_gate(4, (unsigned long)&isr4, 0x08, 0x8E);
+    set_idt_gate(5, (unsigned long)&isr5, 0x08, 0x8E);
+    set_idt_gate(6, (unsigned long)&isr6, 0x08, 0x8E);
+    set_idt_gate(7, (unsigned long)&isr7, 0x08, 0x8E);
+    set_idt_gate(8, (unsigned long)&isr8, 0x08, 0x8E);
+    set_idt_gate(9, (unsigned long)&isr9, 0x08, 0x8E);
+    set_idt_gate(10, (unsigned long)&isr10, 0x08, 0x8E);
+    set_idt_gate(11, (unsigned long)&isr11, 0x08, 0x8E);
+    set_idt_gate(12, (unsigned long)&isr12, 0x08, 0x8E);
+    set_idt_gate(13, (unsigned long)&isr13, 0x08, 0x8E);
+    set_idt_gate(14, (unsigned long)&isr14, 0x08, 0x8E);
+    set_idt_gate(15, (unsigned long)&isr15, 0x08, 0x8E);
+    set_idt_gate(16, (unsigned long)&isr16, 0x08, 0x8E);
+    set_idt_gate(17, (unsigned long)&isr17, 0x08, 0x8E);
+    set_idt_gate(18, (unsigned long)&isr18, 0x08, 0x8E);
+    set_idt_gate(19, (unsigned long)&isr19, 0x08, 0x8E);
+    set_idt_gate(20, (unsigned long)&isr20, 0x08, 0x8E);
+    set_idt_gate(21, (unsigned long)&isr21, 0x08, 0x8E);
+    set_idt_gate(22, (unsigned long)&isr22, 0x08, 0x8E);
+    set_idt_gate(23, (unsigned long)&isr23, 0x08, 0x8E);
+    set_idt_gate(24, (unsigned long)&isr24, 0x08, 0x8E);
+    set_idt_gate(25, (unsigned long)&isr25, 0x08, 0x8E);
+    set_idt_gate(26, (unsigned long)&isr26, 0x08, 0x8E);
+    set_idt_gate(27, (unsigned long)&isr27, 0x08, 0x8E);
+    set_idt_gate(28, (unsigned long)&isr28, 0x08, 0x8E);
+    set_idt_gate(29, (unsigned long)&isr29, 0x08, 0x8E);
+    set_idt_gate(30, (unsigned long)&isr30, 0x08, 0x8E);
+    set_idt_gate(31, (unsigned long)&isr31, 0x08, 0x8E);
 
-    set_idt_gate(32, (unsigned long)irq0, 0x08, 0x8E);
-    set_idt_gate(33, (unsigned long)irq1, 0x08, 0x8E);
-    set_idt_gate(34, (unsigned long)irq2, 0x08, 0x8E);
-    set_idt_gate(35, (unsigned long)irq3, 0x08, 0x8E);
-    set_idt_gate(36, (unsigned long)irq4, 0x08, 0x8E);
-    set_idt_gate(37, (unsigned long)irq5, 0x08, 0x8E);
-    set_idt_gate(38, (unsigned long)irq6, 0x08, 0x8E);
-    set_idt_gate(39, (unsigned long)irq7, 0x08, 0x8E);
-    set_idt_gate(40, (unsigned long)irq8, 0x08, 0x8E);
-    set_idt_gate(41, (unsigned long)irq9, 0x08, 0x8E);
-    set_idt_gate(42, (unsigned long)irq10, 0x08, 0x8E);
-    set_idt_gate(43, (unsigned long)irq11, 0x08, 0x8E);
-    set_idt_gate(44, (unsigned long)irq12, 0x08, 0x8E);
-    set_idt_gate(45, (unsigned long)irq13, 0x08, 0x8E);
-    set_idt_gate(46, (unsigned long)irq14, 0x08, 0x8E);
-    set_idt_gate(47, (unsigned long)irq15, 0x08, 0x8E);
+    set_idt_gate(32, (unsigned long)&irq0, 0x08, 0x8E);
+    set_idt_gate(33, (unsigned long)&irq1, 0x08, 0x8E);
+    set_idt_gate(34, (unsigned long)&irq2, 0x08, 0x8E);
+    set_idt_gate(35, (unsigned long)&irq3, 0x08, 0x8E);
+    set_idt_gate(36, (unsigned long)&irq4, 0x08, 0x8E);
+    set_idt_gate(37, (unsigned long)&irq5, 0x08, 0x8E);
+    set_idt_gate(38, (unsigned long)&irq6, 0x08, 0x8E);
+    set_idt_gate(39, (unsigned long)&irq7, 0x08, 0x8E);
+    set_idt_gate(40, (unsigned long)&irq8, 0x08, 0x8E);
+    set_idt_gate(41, (unsigned long)&irq9, 0x08, 0x8E);
+    set_idt_gate(42, (unsigned long)&irq10, 0x08, 0x8E);
+    set_idt_gate(43, (unsigned long)&irq11, 0x08, 0x8E);
+    set_idt_gate(44, (unsigned long)&irq12, 0x08, 0x8E);
+    set_idt_gate(45, (unsigned long)&irq13, 0x08, 0x8E);
+    set_idt_gate(46, (unsigned long)&irq14, 0x08, 0x8E);
+    set_idt_gate(47, (unsigned long)&irq15, 0x08, 0x8E);
 
     // System calls
     set_idt_gate(128, (unsigned long)isr128, 0x08, 0x8E);
@@ -135,6 +136,7 @@ char *exception_messages[32] = {
 
 void isr_handler(struct InterruptRegisters *regs)
 {
+    //println(uitoa(regs->int_no));
     if (regs->int_no < 32)
     {
         syshalt((exception_messages[regs->int_no]));
@@ -191,14 +193,4 @@ void irq_handler(struct InterruptRegisters *regs)
     }
 
     outb(0x20, 0x20);
-}
-
-void cli()
-{
-    asm volatile("cli");
-}
-
-void sti()
-{
-    asm volatile("sti");
 }

@@ -1,4 +1,4 @@
-void initmm();
+unsigned long initmm();
 void *malloc(unsigned long blockLenghth);
 void except(char* msg);
 void free(void *ptr);

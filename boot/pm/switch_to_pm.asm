@@ -6,10 +6,10 @@ switch_to_pm:
     lgdt [gdt_descriptor] ; Load GDT
 
     mov eax, cr0 ; Make the 1st bit of cr0 to be a one
-    or eax, 0x1
+    or al, 0x1
     mov cr0, eax ; We are in PM
 
-    jmp CODE_SEG:init_pm ; Far jump to 32-bit code, forcing cpu to flush
+    jmp CODE_SEG:init_pm ; Far jump to 32-bit code, setting CS
 
 [bits 32]
 ; Initialize registers and stack once in PM

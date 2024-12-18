@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "low_level.h": "c",
-        "time.h": "c"
+        "time.h": "c",
+        "keyboard.h": "c"
     }
 }

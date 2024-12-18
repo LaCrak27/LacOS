@@ -36,7 +36,7 @@ static unsigned long long memStartAdress = 0;
 static char memoryInitialized = 0;
 
 // Initializes memory manager, should only be ran once by the kernel at startup.
-void initmm()
+unsigned long initmm()
 {
     int entryIndex = 0;
     unsigned char *mapPointer = (char *)0x1001;
@@ -60,6 +60,7 @@ void initmm()
     // Write the base header at start of memory
     writeHeader((MemoryBlockHeader *)(unsigned long)memStartAdress, 0, 0, (MemoryBlockHeader *)0, ((MemoryBlockHeader *)0));
     memoryInitialized = 1;
+    return memStartAdress;
 }
 
 // Writes a header corresponding to a memory block in the given adress
@@ -101,7 +102,7 @@ void *malloc(unsigned long blockLength)
             blockPointer->isBlockFree = 0;
             break;
         }
-        else if (blockPointer->nextBlockAdress == 0) // There's no next block, create one if it's used or extend it if not used
+        else if (blockPointer->nextBlockAdress == NULL) // There's no next block, create one if it's used or extend it if not used
         {
             if (blockPointer->isBlockFree)
             {

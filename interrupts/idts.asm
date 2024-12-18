@@ -9,8 +9,8 @@ idt_flush:
     global isr%1
     isr%1:
         cli
-        push long 0
-        push long %1
+        push dword 0
+        push dword %1
         jmp isr_common_stub
 %endmacro
 
@@ -18,7 +18,7 @@ idt_flush:
     global isr%1
     isr%1:
         cli
-        push long %1
+        push dword %1
         jmp isr_common_stub
 %endmacro
 
@@ -26,8 +26,8 @@ idt_flush:
     global irq%1
     irq%1:
         cli 
-        push long 0
-        push long %2
+        push dword 0
+        push dword %2
         jmp irq_common_stub
 %endmacro
 
@@ -48,11 +48,11 @@ ISR_ERRCODE 13
 ISR_ERRCODE 14
 ISR_NOERRCODE 15
 ISR_NOERRCODE 16
-ISR_NOERRCODE 17
+ISR_ERRCODE 17
 ISR_NOERRCODE 18
 ISR_NOERRCODE 19
 ISR_NOERRCODE 20
-ISR_NOERRCODE 21
+ISR_ERRCODE 21
 ISR_NOERRCODE 22
 ISR_NOERRCODE 23
 ISR_NOERRCODE 24
@@ -60,8 +60,8 @@ ISR_NOERRCODE 25
 ISR_NOERRCODE 26
 ISR_NOERRCODE 27
 ISR_NOERRCODE 28
-ISR_NOERRCODE 29
-ISR_NOERRCODE 30
+ISR_ERRCODE 29
+ISR_ERRCODE 30
 ISR_NOERRCODE 31
 ISR_NOERRCODE 128
 ISR_NOERRCODE 177
@@ -85,6 +85,8 @@ IRQ 15, 47
 
 extern isr_handler
 isr_common_stub:
+    cli
+    xchg bx,bx
     pusha
     mov eax, ds
     push eax
@@ -115,6 +117,7 @@ isr_common_stub:
 extern irq_handler
 irq_common_stub:
     pusha
+    ;xchg bx,bx
     mov eax, ds
     push eax
     mov eax, cr2
@@ -123,7 +126,7 @@ irq_common_stub:
     mov ax, 0x10
     mov ds, ax
     mov es, ax
-    mov fs, ax
+    mov fs, ax  
     mov gs, ax
 
     push esp

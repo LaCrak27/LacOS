@@ -59,7 +59,7 @@ void main()
     }
     else
     {
-        except("Magic byte check failed, bootloader could not find out memory map. Halting...");
+        except("Magic byte check failed, bootloader could not find out memory map.");
     }
     while (1) // Loop in case we exit shell somehow
     {

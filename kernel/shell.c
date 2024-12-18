@@ -5,6 +5,8 @@
 #include "../drivers/timer.h"
 #include "../drivers/sound.h"
 #include "../drivers/floppy.h"
+#include "../util/debug.h"
+#include "../util/stream.h"
 
 char *read_line();
 int exec_line(int argc, char **argv);
@@ -17,6 +19,9 @@ int sh_echo(int argc, char **argv);
 int sh_millis(int argc, char **argv);
 int sh_fdump(int argc, char **argv);
 int sh_meminfo(int argc, char **argv);
+int sh_logo(int argc, char **argv);
+int sh_graphics(int argc, char **argv);
+int sh_bdpl(int argc, char **argv);
 
 char *builtin_cmds[] = {
     "clear",
@@ -28,6 +33,9 @@ char *builtin_cmds[] = {
     "millis",
     "fdump",
     "meminfo",
+    "logo",
+    "graphics",
+    "bdpl",
     NULL};
 
 int (*builtin_func[])(int, char **) = {
@@ -39,7 +47,10 @@ int (*builtin_func[])(int, char **) = {
     &sh_echo,
     &sh_millis,
     &sh_fdump,
-    &sh_meminfo};
+    &sh_meminfo,
+    &sh_logo,
+    &sh_graphics,
+    &sh_bdpl};
 
 char lastLine[MAX_COLS - 2] = {0};
 void init_shell()
@@ -47,7 +58,6 @@ void init_shell()
     println("Shell started correctly!");
     char *line;
     char **args;
-    int status;
     while (1)
     {
         line = read_line();
@@ -120,7 +130,6 @@ char *read_line()
 
 int exec_line(int argc, char **argv)
 {
-    int retCode = 1;
     int i = 0;
     while (builtin_cmds[i] != NULL)
     {
@@ -170,7 +179,7 @@ int sh_setfg(int argc, char **argv)
         println("Incorrect usage. Correct usage is 'setfg <color>', where <color> can be:\nblack\nblue\ngreen\ncyan\nred\npurple\nbrown\ngray\ndarkgray\nlightblue\nlightgreen\nlightcyan\nlightred\nlightpurple\nyellow\nwhite");
         return 1;
     }
-    for (char i = 0; i < 16; i++)
+    for (unsigned char i = 0; i < 16; i++)
     {
         if (strcmp(argv[1], colors[i]))
         {
@@ -195,7 +204,7 @@ int sh_setbg(int argc, char **argv)
         println("Incorrect usage. Correct usage is 'setbg <color>', where <color> can be:\nblack\nblue\ngreen\ncyan\nred\npurple\nbrown\ngray\ndarkgray\nlightblue\nlightgreen\nlightcyan\nlightred\nlightpurple\nyellow\nwhite");
         return 1;
     }
-    for (char i = 0; i < 16; i++)
+    for (unsigned char i = 0; i < 16; i++)
     {
         if (strcmp(argv[1], colors[i]))
         {
@@ -319,7 +328,7 @@ int sh_fdump(int argc, char **argv)
 }
 
 int sh_meminfo(int argc, char **argv)
-{ 
+{
     unsigned long alloc;
     unsigned long total;
     unsigned long used;
@@ -340,6 +349,155 @@ int sh_meminfo(int argc, char **argv)
     print(" bytes (");
     print(itoa((int)(((double)used * 100) / total)));
     println("%).");
-    
+
+    return 0;
+}
+
+int sh_graphics(int argc, char **argv)
+{
+    reboot();
+    switch_graphics();
+    unsigned char temp = 0;
+    unsigned char temp2 = 0;
+    while (1)
+    {
+        temp = 1;
+        for (int i = 0; i < 320 * 200; i++)
+        {
+            g_put_pixel_linear(i, temp);
+            if (!((i + temp2) % 4000))
+                temp++;
+        }
+        temp2++;
+    }
+    return 0;
+}
+
+int sh_logo(int argc, char **argv)
+{
+    println(" __         ______     ______");
+    println("/\\ \\       /\\  __ \\   /\\  ___\\");
+    println("\\ \\ \\____  \\ \\  __ \\  \\ \\ \\____");
+    println(" \\ \\_____\\  \\ \\_\\ \\_\\  \\ \\_____\\");
+    println("  \\/_____/   \\/_/\\/_/   \\/_____/");
+    println("");
+    println(" ______     _____");
+    println("/\\  __ \\   /\\  ___\\");
+    println("\\ \\ \\_\\ \\  \\ \\___  \\");
+    println(" \\ \\_____\\  \\/\\_____\\");
+    println("  \\/_____/   \\/_____/");
+
+    return 0;
+}
+
+/// TODO: SAFETY, THIS IS JUST A PROOF OF CONCEPT AND WILL ALMOST 100% FUCK UP THE MEMORY
+int sh_bdpl(int argc, char **argv)
+{
+    clear_screen();
+    set_fg(YELLOW);
+    println("BDPL Player for LacOS 1.0");
+    println("(c) LaCrak27");
+    set_fg(GRAY);
+    unsigned long size = atoi(argv[1]);
+    if (size == -1)
+    {
+        set_fg(RED);
+        println("Incorrect input. Correct usage: ");
+        println("bdpl <bufferSize>");
+        set_fg(GRAY);
+        return 1;
+    }
+    // Buffer with actual data.
+    unsigned char *buffer = (char *)malloc(size + 2);
+    // Buffer from floppy read.
+    unsigned char *fbuffer = (char *)malloc(floppy_dmalen);
+    if (!buffer || !fbuffer)
+    {
+        println("Error allocating buffer");
+        println("Hint: Check if you have enough memory by using meminfo");
+        return 2;
+    }
+    unsigned long position = 0;
+    int cylToRead = 0;
+    println("Please insert disk and press any key to continue.");
+    read_key();
+    while (size > 0)
+    {
+        print("Remaining cylinders: ");
+        println(itoa(size / floppy_dmalen));
+        print("Reading cylinder: ");
+        println(itoa(cylToRead));
+        println("------------");
+        flp_raw_read_cyl(cylToRead, fbuffer);
+        if (size > 0)
+        {
+            memcpy(fbuffer, buffer + position, floppy_dmalen);
+        }
+        else
+        {
+            // Only copy remaining bytes
+            memcpy(fbuffer, buffer + position, floppy_dmalen + size);
+        }
+        position += floppy_dmalen;
+        size -= floppy_dmalen;
+        cylToRead++;
+    }
+    buffer[size] = NULL;
+    buffer[size + 1] = NULL; // Null terminate buffer
+    clear_screen();
+    set_fg(GREEN);
+    println("Done loading!");
+    set_fg(GRAY);
+    println("Press any key to start playback");
+    read_key();
+    switch_graphics();
+    Stream *s = create_stream(buffer);
+    unsigned long ft = millis(); // Frametime
+    char c = 0;                  // Current color: 0->Black, 7->White
+    int fn = 0;                  // Frame number
+    s_get_short(s);              // Skip 1st 0xFFFF
+    while (1)
+    {
+        if (s_get_byte(s) == 1)
+        {
+            c = 7;
+        }
+        else
+        {
+            c = 0;
+        }
+        unsigned short framePos = 0;
+        while (1) // Start of new frame
+        {
+            unsigned short currShort = s_get_short(s);
+            if (currShort == 0xFFFF)
+            {
+                while (1)
+                {
+                    if (millis() >= ft + 33 * fn)
+                        break;
+                }
+                fn++;
+                break;
+            }
+            if (currShort == NULL || currShort == 0xFFFC)
+            {
+                reboot();
+            }
+            for (int i = 0; i < currShort; i++)
+            {
+                g_put_pixel_linear(framePos, c);
+                framePos++;
+            }
+            if (!c) // Invert color
+            {
+                c = 7;
+            }
+            else
+            {
+                c = 0;
+            }
+        }
+    }
     return 0;
 }

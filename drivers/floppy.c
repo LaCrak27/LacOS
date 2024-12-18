@@ -23,11 +23,6 @@ void floppy_motor_kill();
 
 // DMA buffer
 static unsigned char floppy_dmabuf[floppy_dmalen]__attribute__((aligned(0x8000)));
-// Actual floppy buffer (cache to not re-read since that takes AGES)
-static unsigned char floppy_buffer[1474560];
-// Says if cylinders (both tracks) are valid, since those are the chunks we read.
-// TODO: Handle disk changing to reset cache
-static unsigned char floppy_cyl_cache[80];
 
 static char floppy_available = 0;
 char flp_avail()
@@ -323,7 +318,7 @@ static int floppy_dma_init(int dir)
     return 0;
 }
 
-// This monster does full cylinder (both tracks) transfer to
+// This does full cylinder (both tracks) transfer to
 // the specified direction (since the difference is small).
 //
 // It retries (a lot of times) on all errors except write-protection
@@ -347,7 +342,7 @@ int floppy_do_track(unsigned cyl, int dir)
             cmd = WRITE_DATA | flags;
             break;
         default: 
-            return -1; // not reached, but pleases "cmd used uninitialized"
+            return -1; // not reached
     }
 
     // seek both heads

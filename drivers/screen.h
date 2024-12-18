@@ -1,4 +1,5 @@
-#define VIDEO_ADRESS 0xb8000
+#define TEXT_VIDEO_ADRESS 0xB8000
+#define GRAPHICS_VIDEO_ADRESS 0xA0000
 #define MAX_ROWS 25
 #define MAX_COLS 80
 //Color schemes
@@ -41,3 +42,7 @@ int handle_scrolling(int cursor_offset);
 void disable_cursor();
 int get_cursor_row();
 int get_cursor_col();
+void switch_graphics();
+void g_set_color(unsigned char color_number, unsigned char R, unsigned char G, unsigned char B);
+void g_put_pixel_linear(int pixel_pos, unsigned char color);
+void g_cls();

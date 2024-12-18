@@ -7,6 +7,7 @@
 #define INT_MIN -2147483648
 #define INT_MAX 2147483647
 #define UINT_MAX 4294967295
+#define size(x) (sizeof(x)/sizeof(x[0]))
 void memcpy(char *source, char *dest, int n);
 int strlen(char* str);
 int strcmp(char *str1, char *str2);
@@ -23,6 +24,7 @@ int atoi(char *str);
 int max(int a, int b);
 int min(int a, int b);
 int arrlen(void **arr);
+void reboot();
 
 struct MapEntryStruct
 {
