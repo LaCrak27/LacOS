@@ -223,7 +223,7 @@ void floppy_motor(int onoff)
         {
             // need to turn on
             outb(DIGITAL_OUTPUT_REGISTER, 0x1c);
-            sleep(500); // Wait for motor to spin up
+            sleep(300); // Wait for motor to spin up
         }
         floppy_motor_state = floppy_motor_on;
     }
@@ -351,10 +351,9 @@ int floppy_do_track(unsigned cyl, int dir)
 
     int i;
     int error = 0;
+    floppy_motor(floppy_motor_on);
     for(i = 0; i < 20; i++) 
     {
-        floppy_motor(floppy_motor_on);
-
         // init dma..
         floppy_dma_init(dir);
 
@@ -387,7 +386,6 @@ int floppy_do_track(unsigned cyl, int dir)
             error = 1;
         }
         if(st1 & 0x80) { // End of cylinder
-        println("AB");
             error = 2;
         }
         if(st0 & 0x08) { // Drive not ready
@@ -452,6 +450,10 @@ int floppy_write_track(unsigned cyl)
 // Buffer MUST be of size floppy_dmalen.
 void flp_raw_read_cyl(unsigned cyl, unsigned char *buffer)
 {
-    floppy_read_track(cyl);
+
+    if(floppy_read_track(cyl))
+    {
+        except_intern(uitoa(cyl));
+    }
     memcpy(floppy_dmabuf, buffer, floppy_dmalen);
 }

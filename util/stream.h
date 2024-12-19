@@ -7,3 +7,4 @@ typedef struct
 Stream *create_stream(unsigned char *buffer);
 unsigned char s_get_byte(Stream *stream);
 unsigned short s_get_short(Stream *stream);
+void free_stream(Stream *stream);

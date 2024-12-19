@@ -5,7 +5,7 @@ HEADERS = $(wildcard kernel/*.h drivers/*.h interrupts/*.h util/*.c)
 ASM_SOURCES = $(wildcard interrupts/*.asm)
 
 all: clean LacOS.img
-bochsdbg: clean LacOS.bin
+bochsdbg: clean LacOS.img
 	bochsdbg.exe -f debug.bxrc -q
 start: clean LacOS.img
 	qemu-system-x86_64.exe -fda LacOS.img -d guest_errors
@@ -27,7 +27,7 @@ clean:
 	rm -fr kernel/*.o boot/*.bin drivers/*.o
 
 %.o: %.c ${HEADERS}
-	gcc -mno-mmx -mno-sse -mno-sse2 -fno-pie -ffreestanding -m32 -c $< -o $@
+	gcc -D COMP_DATE='"$(shell date)"' -mno-mmx -mno-sse -mno-sse2 -fno-pie -ffreestanding -m32 -c $< -o $@
 
 kernel/kernel_entry.o: kernel/kernel_entry.asm
 	nasm $< -f elf -o $@

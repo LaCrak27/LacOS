@@ -398,7 +398,7 @@ int sh_bdpl(int argc, char **argv)
     println("BDPL Player for LacOS 1.0");
     println("(c) LaCrak27");
     set_fg(GRAY);
-    unsigned long size = atoi(argv[1]);
+    int size = atoi(argv[1]);
     if (size == -1)
     {
         set_fg(RED);
@@ -408,7 +408,7 @@ int sh_bdpl(int argc, char **argv)
         return 1;
     }
     // Buffer with actual data.
-    unsigned char *buffer = (char *)malloc(size + 2);
+    unsigned char *buffer = (char *)malloc(size + 5);
     // Buffer from floppy read.
     unsigned char *fbuffer = (char *)malloc(floppy_dmalen);
     if (!buffer || !fbuffer)
@@ -421,6 +421,7 @@ int sh_bdpl(int argc, char **argv)
     int cylToRead = 0;
     println("Please insert disk and press any key to continue.");
     read_key();
+    int ogsize = size;
     while (size > 0)
     {
         print("Remaining cylinders: ");
@@ -429,36 +430,63 @@ int sh_bdpl(int argc, char **argv)
         println(itoa(cylToRead));
         println("------------");
         flp_raw_read_cyl(cylToRead, fbuffer);
-        if (size > 0)
+        size -= floppy_dmalen;
+        if (size >= 0)
         {
             memcpy(fbuffer, buffer + position, floppy_dmalen);
         }
         else
         {
-            // Only copy remaining bytes
             memcpy(fbuffer, buffer + position, floppy_dmalen + size);
         }
         position += floppy_dmalen;
-        size -= floppy_dmalen;
         cylToRead++;
     }
-    buffer[size] = NULL;
-    buffer[size + 1] = NULL; // Null terminate buffer
+    buffer[ogsize] = 0xFC;
+    buffer[ogsize + 1] = 0xFF;
+    buffer[ogsize + 2] = 0x69;
+    buffer[ogsize + 1] = 0xFC;
+    buffer[ogsize + 3] = 0xFF; // Terminate buffer (In case of misaligment, make it so it always detects it,
+                               // even if the end of the file is messed up)
     clear_screen();
     set_fg(GREEN);
-    println("Done loading!");
+    println("Done loading!, hashing...");
     set_fg(GRAY);
+    // TEMP HASH
+    unsigned long hash = 0;
+    position = 0;
+    while (1)
+    {
+        if ((buffer[position] == 0xFC && buffer[position + 1] == 0xFF))
+        {
+            break;
+        }
+        hash += buffer[position] * 33;
+        position++;
+    }
+    print("Hash: ");
+    println(uitoa(hash));
+    print("First 3 bytes: ");
+    print(uctoh(buffer[0]));
+    printc(' ');
+    print(uctoh(buffer[1]));
+    printc(' ');
+    print(uctoh(buffer[2]));
+    printc(' ');
+    print("\nBuffer address: ");
+    print(uitoh((unsigned)buffer));
+    printc('\n');
     println("Press any key to start playback");
     read_key();
     switch_graphics();
-    Stream *s = create_stream(buffer);
+    g_cls();
+    position = 2;                // Skip 1st 0xFFFF
     unsigned long ft = millis(); // Frametime
     char c = 0;                  // Current color: 0->Black, 7->White
-    int fn = 0;                  // Frame number
-    s_get_short(s);              // Skip 1st 0xFFFF
+    unsigned fn = 0;             // Frame number
     while (1)
     {
-        if (s_get_byte(s) == 1)
+        if (buffer[position] == 1)
         {
             c = 7;
         }
@@ -466,22 +494,25 @@ int sh_bdpl(int argc, char **argv)
         {
             c = 0;
         }
+        position++;
         unsigned short framePos = 0;
         while (1) // Start of new frame
         {
-            unsigned short currShort = s_get_short(s);
+            unsigned short currShort = buffer[position] | buffer[position + 1] << 8;
+            position += 2;
             if (currShort == 0xFFFF)
             {
                 while (1)
                 {
-                    if (millis() >= ft + 33 * fn)
+                    if (millis() >= ft + (33 * fn))
                         break;
                 }
                 fn++;
                 break;
             }
-            if (currShort == NULL || currShort == 0xFFFC)
+            if (currShort == 0xFFFC)
             {
+                BochsBreak();
                 reboot();
             }
             for (int i = 0; i < currShort; i++)

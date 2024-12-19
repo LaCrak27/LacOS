@@ -1,3 +1,6 @@
+#ifndef COMP_DATE
+#define COMP_DATE "Unknown date"
+#endif
 #include "../drivers/screen.h"
 #include "../drivers/floppy.h"
 #include "../drivers/timer.h"
@@ -23,8 +26,10 @@ void main()
     println("/\\  __ \\   /\\  ___\\");
     println("\\ \\ \\_\\ \\  \\ \\___  \\");
     println(" \\ \\_____\\  \\/\\_____\\");
-    println("  \\/_____/   \\/_____/    v0.5");
+    println("  \\/_____/   \\/_____/");
     println("(c) LaCrak27 2023-2024. No rights reserved.");
+    print("Compiled at: ");
+    println(COMP_DATE);
     print("Initializing IDT...          ");
     init_idt();
     set_fg(GREEN);
