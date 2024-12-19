@@ -441,18 +441,29 @@ int sh_bdpl(int argc, char **argv)
         }
         position += floppy_dmalen;
         cylToRead++;
+        if(cylToRead == 80 && size > 0)
+        {
+            println("Please insert the next disk and press any key to continue, or press q to abort the process");
+            if(read_key() == 'q')
+            {
+                free(fbuffer);
+                free(buffer);
+                return 3;
+            }
+            cylToRead = 0;
+        }
     }
     buffer[ogsize] = 0xFC;
     buffer[ogsize + 1] = 0xFF;
     buffer[ogsize + 2] = 0x69;
-    buffer[ogsize + 1] = 0xFC;
-    buffer[ogsize + 3] = 0xFF; // Terminate buffer (In case of misaligment, make it so it always detects it,
+    buffer[ogsize + 3] = 0xFC;
+    buffer[ogsize + 4] = 0xFF; // Terminate buffer (In case of misaligment, make it so it always detects it,
                                // even if the end of the file is messed up)
     clear_screen();
     set_fg(GREEN);
     println("Done loading!, hashing...");
     set_fg(GRAY);
-    // TEMP HASH
+    // Hash to check reading errors
     unsigned long hash = 0;
     position = 0;
     while (1)
@@ -486,14 +497,7 @@ int sh_bdpl(int argc, char **argv)
     unsigned fn = 0;             // Frame number
     while (1)
     {
-        if (buffer[position] == 1)
-        {
-            c = 7;
-        }
-        else
-        {
-            c = 0;
-        }
+        c = buffer[position] == 1 ? 7 : 0;
         position++;
         unsigned short framePos = 0;
         while (1) // Start of new frame
@@ -520,14 +524,7 @@ int sh_bdpl(int argc, char **argv)
                 g_put_pixel_linear(framePos, c);
                 framePos++;
             }
-            if (!c) // Invert color
-            {
-                c = 7;
-            }
-            else
-            {
-                c = 0;
-            }
+            c = !c ? 7 : 0; // Change value of c
         }
     }
     return 0;
