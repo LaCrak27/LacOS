@@ -86,7 +86,6 @@ IRQ 15, 47
 extern isr_handler
 isr_common_stub:
     cli
-    xchg bx,bx
     pusha
     mov eax, ds
     push eax
@@ -117,7 +116,6 @@ isr_common_stub:
 extern irq_handler
 irq_common_stub:
     pusha
-    ;xchg bx,bx
     mov eax, ds
     push eax
     mov eax, cr2

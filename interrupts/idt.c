@@ -8,7 +8,7 @@ struct IdtEntryStruct idtEntries[256];
 struct IdtPointerStruct idtPtr;
 
 extern void idt_flush(unsigned long x);
-void syshalt(char *errorMessage);
+void syshalt(char *errorMessage, struct InterruptRegisters *regs);
 
 void init_idt()
 {
@@ -139,22 +139,50 @@ void isr_handler(struct InterruptRegisters *regs)
     //println(uitoa(regs->int_no));
     if (regs->int_no < 32)
     {
-        syshalt((exception_messages[regs->int_no]));
+        syshalt((exception_messages[regs->int_no]), regs);
     }
 }
 
 void except_intern(char* errorMessage)
 {
-    syshalt(errorMessage);
+    syshalt(errorMessage, NULL);
 }
 
-void syshalt(char *errorMessage)
+void syshalt(char *errorMessage, struct InterruptRegisters *regs)
 {
     set_fg(WHITE);
     set_bg(BLUE);
     clear_screen();
     println("SYSTEM HALTED!!! Error:");
-    print(errorMessage);
+    println(errorMessage);
+    if(regs)
+    {
+        println("--------------------------------------------------------------------------------");
+        println("GP Regs: ");
+        print("EAX: ");
+        print(uitoh(regs->eax));
+        print("  ");
+        print("EBX: ");
+        print(uitoh(regs->ebx));
+        print("  ");
+        print("ECX: ");
+        print(uitoh(regs->ecx));
+        print("  ");
+        print("EDX: ");
+        print(uitoh(regs->edx));
+        println("  ");
+        println("--------------------------------------------------------------------------------");
+        print("EFLAGS: ");
+        println(uitoh(regs->eflags));
+        println("--------------------------------------------------------------------------------");
+        print("ESP: ");
+        println(uitoh(regs->esp));
+        println("--------------------------------------------------------------------------------");
+        print("EIP: ");
+        println(uitoh(regs->eip));
+    }
+    println("--------------------------------------------------------------------------------");
+    println("Please reboot your computer.");
     disable_cursor();
     for (;;)
         ;

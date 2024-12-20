@@ -66,6 +66,7 @@ void main()
     {
         except("Magic byte check failed, bootloader could not find out memory map.");
     }
+    int a = 8 / 0;
     while (1) // Loop in case we exit shell somehow
     {
         init_shell();

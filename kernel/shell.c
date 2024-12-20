@@ -355,7 +355,6 @@ int sh_meminfo(int argc, char **argv)
 
 int sh_graphics(int argc, char **argv)
 {
-    reboot();
     switch_graphics();
     unsigned char temp = 0;
     unsigned char temp2 = 0;
@@ -424,6 +423,17 @@ int sh_bdpl(int argc, char **argv)
     int ogsize = size;
     while (size > 0)
     {
+        if(cylToRead > 79)
+        {
+            println("Please insert the next disk and press any key to continue, or press q to abort");
+            if(read_key() == 'q')
+            {
+                free(fbuffer);
+                free(buffer);
+                return 3;
+            }
+            cylToRead = 0;
+        }
         print("Remaining cylinders: ");
         println(itoa(size / floppy_dmalen));
         print("Reading cylinder: ");
@@ -441,17 +451,6 @@ int sh_bdpl(int argc, char **argv)
         }
         position += floppy_dmalen;
         cylToRead++;
-        if(cylToRead == 80 && size > 0)
-        {
-            println("Please insert the next disk and press any key to continue, or press q to abort the process");
-            if(read_key() == 'q')
-            {
-                free(fbuffer);
-                free(buffer);
-                return 3;
-            }
-            cylToRead = 0;
-        }
     }
     buffer[ogsize] = 0xFC;
     buffer[ogsize + 1] = 0xFF;
@@ -463,6 +462,7 @@ int sh_bdpl(int argc, char **argv)
     set_fg(GREEN);
     println("Done loading!, hashing...");
     set_fg(GRAY);
+    free(fbuffer);
     // Hash to check reading errors
     unsigned long hash = 0;
     position = 0;
@@ -497,7 +497,7 @@ int sh_bdpl(int argc, char **argv)
     unsigned fn = 0;             // Frame number
     while (1)
     {
-        c = buffer[position] == 1 ? 7 : 0;
+        c = buffer[position] == 1 ? 7 : 0; // Set starting frame color
         position++;
         unsigned short framePos = 0;
         while (1) // Start of new frame
