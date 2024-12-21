@@ -71,6 +71,10 @@ void print_char(char character, int col, int row)
         vidmem[offset] = ' ';
         vidmem[offset + 1] = attribute_byte;
         set_cursor(offset);
+        if (serial_available())
+            write_serial('\b', COM1_PORT); 
+            write_serial(' ', COM1_PORT); 
+            write_serial('\b', COM1_PORT); 
         return;
     }
     if (character == '\n')
