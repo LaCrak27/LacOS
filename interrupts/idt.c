@@ -157,32 +157,28 @@ void syshalt(char *errorMessage, struct InterruptRegisters *regs)
     println(errorMessage);
     if(regs)
     {
-        println("--------------------------------------------------------------------------------");
+        print("--------------------------------------------------------------------------------");
         println("GP Regs: ");
         print("EAX: ");
-        print(uitoh(regs->eax));
-        print("  ");
+        println(uitohp(regs->eax, 8));
         print("EBX: ");
-        print(uitoh(regs->ebx));
-        print("  ");
+        println(uitohp(regs->ebx, 8));
         print("ECX: ");
-        print(uitoh(regs->ecx));
-        print("  ");
+        println(uitohp(regs->ecx, 8));
         print("EDX: ");
-        print(uitoh(regs->edx));
-        println("  ");
-        println("--------------------------------------------------------------------------------");
+        println(uitohp(regs->edx, 8));
+        print("--------------------------------------------------------------------------------");
         print("EFLAGS: ");
-        println(uitoh(regs->eflags));
-        println("--------------------------------------------------------------------------------");
+        println(uitohp(regs->eflags, 8));
+        print("--------------------------------------------------------------------------------");
         print("ESP: ");
-        println(uitoh(regs->esp));
-        println("--------------------------------------------------------------------------------");
+        println(uitohp(regs->esp, 8));
+        print("--------------------------------------------------------------------------------");
         print("EIP: ");
-        println(uitoh(regs->eip));
+        println(uitohp(regs->eip, 8));
     }
-    println("--------------------------------------------------------------------------------");
-    println("Please reboot your computer.");
+    print("--------------------------------------------------------------------------------");
+    println("Please reboot your computer");
     disable_cursor();
     for (;;)
         ;

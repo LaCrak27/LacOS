@@ -2,6 +2,7 @@
 #include "../util/low_level.h"
 #include "../util/util.h"
 #include "timer.h"
+#include "serial.h"
 
 char graphicsMode = TEXT;
 
@@ -43,9 +44,16 @@ void erase_char()
     set_cursor(offset);
 }
 
-// Prints a character on the screen at a certain position or at the cursor's pos
+// Prints a character on the screen at a certain position or at the cursor's position.
+// Also sends to COM1
 void print_char(char character, int col, int row)
 {
+    if(graphicsMode == GRAPHICS)
+    {
+        if (serial_available())
+            write_serial('\r', COM1_PORT);
+        return;
+    }
     // Pointer that starts at the beggining of video memory
     unsigned char *vidmem = (unsigned char *)TEXT_VIDEO_ADRESS;
     int offset;
@@ -59,19 +67,28 @@ void print_char(char character, int col, int row)
     }
     if (character == '\b')
     {
-        erase_char();
+        offset -= 2;
+        vidmem[offset] = ' ';
+        vidmem[offset + 1] = attribute_byte;
+        set_cursor(offset);
         return;
     }
     if (character == '\n')
     {
         int rows = offset / (2 * MAX_COLS);
         offset = get_screen_offset(79, rows);
+        // Serial only returns by itself when you press the enter key
+        // so we need to make this so that it also does it when programs want newlines
+        if (serial_available())
+            write_serial('\r', COM1_PORT); 
     }
     else
     {
         vidmem[offset] = character;
         vidmem[offset + 1] = attribute_byte;
     }
+    if (serial_available())
+        write_serial(character, COM1_PORT);
     // Update offset
     offset += 2;
     offset = handle_scrolling(offset);
@@ -256,6 +273,7 @@ void switch_graphics()
     }
     outb(0x3c0, 0x20); // enable video
     sti();
+    graphicsMode = GRAPHICS;
     return;
 }
 
@@ -278,7 +296,7 @@ void g_put_pixel_linear(int pixel_pos, unsigned char color)
 
 void g_cls()
 {
-    for(int i = 0; i < 320*200; i++)
+    for (int i = 0; i < 320 * 200; i++)
     {
         g_put_pixel_linear(i, 0);
     }

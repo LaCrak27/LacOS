@@ -516,7 +516,6 @@ int sh_bdpl(int argc, char **argv)
             }
             if (currShort == 0xFFFC)
             {
-                BochsBreak();
                 reboot();
             }
             for (int i = 0; i < currShort; i++)

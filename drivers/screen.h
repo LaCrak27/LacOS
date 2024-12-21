@@ -23,8 +23,8 @@
 #define REG_SCREEN_CTRL 0x3D4
 #define REG_SCREEN_DATA 0x3D5
 //Graphic modes
-#define TEXT 0
-#define GRAPHICS 1
+#define TEXT 3
+#define GRAPHICS 0x13
 void set_fg(unsigned char fgVal);
 void set_bg(unsigned char bgVal);
 void set_attr_byte(unsigned char attrByte);

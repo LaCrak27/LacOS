@@ -8,7 +8,9 @@ all: clean LacOS.img
 bochsdbg: clean LacOS.img
 	bochsdbg.exe -f debug.bxrc -q
 start: clean LacOS.img
-	qemu-system-x86_64.exe -fda LacOS.img -d guest_errors
+	qemu-system-x86_64.exe -fda LacOS.img -d guest_errors -serial stdio
+headless: LacOS.img
+	qemu-system-x86_64.exe -fda LacOS.img -d guest_errors -nographic
 debug: LacOS.img
 	C:\Program Files\Oracle\VirtualBox\vboxmanage.exe startvm "LacOS" -E VBOX_GUI_DBG_AUTO_SHOW=true -E VBOX_GUI_DBG_ENABLED=true
 LacOS.iso: LacOS.img # This is a DOS, the ISO was experimental. A lot of things won't work.

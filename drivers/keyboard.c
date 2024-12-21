@@ -2,6 +2,7 @@
 #include "../util/low_level.h"
 #include "screen.h"
 #include "keyboard.h"
+#include "serial.h"
 
 typedef struct InterruptRegisters InterruptRegisters;
 
@@ -39,7 +40,24 @@ unsigned long read_key()
     resKey = 0;
     while (waitingForKey)
     {
-        // Wait for key lol
+        if (inb(COM1_PORT + 5) & 1)
+        {
+            char r = inb(COM1_PORT);
+            switch (r)
+            {
+            case 13:
+                r = '\n';
+                break;
+
+            case 127:
+                r = '\b';
+                break;
+
+            default:
+                break;
+            }
+            return r;
+        }
     }
     return resKey;
 }

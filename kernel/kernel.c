@@ -2,6 +2,7 @@
 #define COMP_DATE "Unknown date"
 #endif
 #include "../drivers/screen.h"
+#include "../drivers/serial.h"
 #include "../drivers/floppy.h"
 #include "../drivers/timer.h"
 #include "../drivers/sound.h"
@@ -14,7 +15,10 @@
 
 void main()
 {
+    init_serial(0, COM1_PORT);
     clear_screen();
+    if(serial_available())
+        write_serial('\r', COM1_PORT);
     // ASCII Art
     println(" __         ______     ______");
     println("/\\ \\       /\\  __ \\   /\\  ___\\");
@@ -22,7 +26,7 @@ void main()
     println(" \\ \\_____\\  \\ \\_\\ \\_\\  \\ \\_____\\");
     println("  \\/_____/   \\/_/\\/_/   \\/_____/");
     println("");
-    println(" ______     _____");
+    println(" ______     ______");
     println("/\\  __ \\   /\\  ___\\");
     println("\\ \\ \\_\\ \\  \\ \\___  \\");
     println(" \\ \\_____\\  \\/\\_____\\");
@@ -66,7 +70,6 @@ void main()
     {
         except("Magic byte check failed, bootloader could not find out memory map.");
     }
-    int a = 8 / 0;
     while (1) // Loop in case we exit shell somehow
     {
         init_shell();
