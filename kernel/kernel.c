@@ -17,8 +17,7 @@ void main()
 {
     init_serial(0, COM1_PORT);
     clear_screen();
-    if(serial_available())
-        write_serial('\r', COM1_PORT);
+    write_serial('\r', COM1_PORT);
     // ASCII Art
     println(" __         ______     ______");
     println("/\\ \\       /\\  __ \\   /\\  ___\\");

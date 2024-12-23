@@ -48,10 +48,9 @@ void erase_char()
 // Also sends to COM1
 void print_char(char character, int col, int row)
 {
-    if(graphicsMode == GRAPHICS)
+    if (graphicsMode == GRAPHICS)
     {
-        if (serial_available())
-            write_serial('\r', COM1_PORT);
+        write_serial('\r', COM1_PORT);
         return;
     }
     // Pointer that starts at the beggining of video memory
@@ -71,10 +70,9 @@ void print_char(char character, int col, int row)
         vidmem[offset] = ' ';
         vidmem[offset + 1] = attribute_byte;
         set_cursor(offset);
-        if (serial_available())
-            write_serial('\b', COM1_PORT); 
-            write_serial(' ', COM1_PORT); 
-            write_serial('\b', COM1_PORT); 
+        write_serial('\b', COM1_PORT);
+        write_serial(' ', COM1_PORT);
+        write_serial('\b', COM1_PORT);
         return;
     }
     if (character == '\n')
@@ -83,16 +81,14 @@ void print_char(char character, int col, int row)
         offset = get_screen_offset(79, rows);
         // Serial only returns by itself when you press the enter key
         // so we need to make this so that it also does it when programs want newlines
-        if (serial_available())
-            write_serial('\r', COM1_PORT); 
+        write_serial('\r', COM1_PORT);
     }
     else
     {
         vidmem[offset] = character;
         vidmem[offset + 1] = attribute_byte;
     }
-    if (serial_available())
-        write_serial(character, COM1_PORT);
+    write_serial(character, COM1_PORT);
     // Update offset
     offset += 2;
     offset = handle_scrolling(offset);
@@ -211,73 +207,232 @@ void switch_text()
 {
 }
 
-// misc out (3c2h) value for various modes
-#define R_COM 0x63 // "common" bits
-
-#define R_W320 0x00
-
-#define R_H200 0x00
-
 // Switches to graphics mode
 // (mode 13h)
 void switch_graphics()
 {
+    // REFERENCES:
+    // https://ia801905.us.archive.org/30/items/bitsavers_ibmpccardseferenceManualMay92_1756350/IBM_VGA_XGA_Technical_Reference_Manual_May92.pdf
+    // https://wiki.osdev.org/VGA_Hardware
     cli();
-    static const unsigned char hor_regs[] = {0x0, 0x1, 0x2, 0x3, 0x4,
-                                             0x5, 0x13};
 
-    static const unsigned char width_320[] = {0x5f, 0x4f, 0x50, 0x82, 0x54,
-                                              0x80, 0x28};
+    // MISC Output register (0x03C2):
+    // _______________________________
+    // | 7   6   5   4  3  2  1    0 |
+    // |VSP|HSP| 1 |---| CS |ERAM|IOS|
+    // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    // VSP = 0, HSP = 1 -> 400 vertical lines (duplicated)
+    // CS = 00 -> 25.175MHz clock for 320 horizontal lines
+    // ERAM = 1 -> Enable RAM
+    // IOS = 1 -> CRT controller addresses: 0x3Dx, IS1 reg: 0x3DA
+    outb(0x03C2, 0b01100011);
 
-    static const unsigned char ver_regs[] = {0x6, 0x7, 0x9, 0x10, 0x11,
-                                             0x12, 0x15, 0x16};
+    //// CRT Control registers (0x03D4):
+    /// Horizontal:
+    // Select register 0x11 (Vert. Retrace End)
+    // ________________________
+    // | 7  6   5   4  3 2 1 0|
+    // |PR|S5R|EVI|CVI|  VRE  |
+    // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    // Set to 0b00001110:
+    // PR = 0 -> Registers 0-7 unlocked
+    // S5R = 0 -> Basically always zero, weird 15.75kHz display things
+    // EVI = 0 -> If set, generate an IRQ2 every time you finish drawing a frame
+    // CVI = 0 -> Clears said interrupt
+    // VRE = 0b1110 -> Is used when calculating when vertical retrace starts, gets set again later
+    outw(0x03D4, 0x0E11);
 
-    static const unsigned char height_200[] = {0xbf, 0x1f, 0x41, 0x9c, 0x8e,
-                                               0x8f, 0x96, 0xb9};
+    // Select register 0x00 (Horizontal Total)
+    // ___________________
+    // | 7 6 5 4 3 2 1 0 |
+    // |    Hor. Total   |
+    // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    // !!! Value is the stated in the register plus 5
+    // HT = 95 -> 100 Characters in the horizontal scan interval (as required for mode 0x13)
+    outw(0x03D4, 0x5F00);
+    // Select register 0x01 (Hor. Display-Enable End)
+    // ___________________
+    // | 7 6 5 4 3 2 1 0 |
+    // | Hor.Disp.En.End |
+    // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    // !!! Value is the stated in the register plus 1
+    // HDEE = 79 -> 80 Character positions per horizontal line (as required for mode 0x13)
+    outw(0x03D4, 0x4F01);
+    // Select register 0x02 (Hor. Blanking Start)
+    // ___________________
+    // | 7 6 5 4 3 2 1 0 |
+    // | Hor. Blank. St. |
+    // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    // HB = 80 -> Character count where the horizontal blanking starts is 80 (as required for mode 0x13)
+    outw(0x03D4, 0x5002);
+    // Select register 0x03 (Hor. Blanking End)
+    // _____________________
+    // | 7  6 5  4 3 2 1 0 |
+    // | 1 |DES|     EB    |
+    // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    // 1 = 1 -> Always 1
+    // DES = 00 -> No character clock skew (ignored on type 2)
+    // EB = 0b00010 -> End blanking field, 5 lowest bytes of value (highest is in reg 0x05), says when blanking ends
+    outw(0x03D4, 0x8203);
+    // Select register 0x04 (Start Horizontal Retrace Pulse)
+    // ___________________
+    // | 7 6 5 4 3 2 1 0 |
+    // | St.Hor.Ret.Pul. |
+    // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    // STRP = 84 -> Used to center screen, specifies char pos when horizontal retrace goes active (as required for mode 0x13)
+    outw(0x03D4, 0x5404);
+    // Select register 0x05 (End Horizontal Retrace)
+    // __________________________
+    // |  7   6   5   4 3 2 1 0 |
+    // | EB5|  HRD  |    EHR    |
+    // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    // EB5 = 1 -> MSB of "End blanking field" (lowest in reg 0x04)
+    // HRD = 0 -> No skew
+    // EHR = 0 -> Set's horizontal retrace to inactive at position 0 (as required for mode 0x13)
+    outw(0x03D4, 0x8005);
+    // Select register 0x13 (Offset register / Logical width)
+    // ___________________
+    // | 7 6 5 4 3 2 1 0 |
+    // |      Offset     |
+    // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    // Offset = 40 -> Logical line width of screen (as required for mode 13h)
+    outw(0x03D4, 0x2813);
 
-    const unsigned char *w, *h;
-    unsigned char val;
-    int a;
+    /// Vertical:
+    // Select register 0x06 (Vertical Total)
+    // ___________________
+    // | 7 6 5 4 3 2 1 0 |
+    // |   Vert. Total   |
+    // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    // VT = 191 -> 8 low bits of number of horizontal lines on display. Upper 2 are in overflow register
+    outw(0x03D4, 0xBF06);
+    // Select register 0x07 (Overflow register)
+    // _______________________________________
+    // |  7    6    5   4   3    2    1    0 |
+    // | VRS9|VDE9|VT9|LC8|VBS8|VRS8|VDE8|VT8|
+    // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    // Each bit is the corresponding one from those values.
+    outw(0x03D4, 0x1F07);
+    // Select register 0x09 (Max. Scanline)
+    // __________________________
+    // |  7   6   5   4 3 2 1 0 |
+    // | DSC|LC9|VBS9|    MSL   |
+    // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    // !!! Value is the stated in the register plus 1
+    // MSL = 1 -> 2 scanlines per character row (which is why vertical lines are duplicated in MISC)
+    outw(0x03D4, 0x4109);
+    // Vert. Retrace start (same as hor. retrace start roughly)
+    outw(0x03D4, 0x9C10);
+    // Vert. Retrace end (same as hor. retrace end roughly)
+    outw(0x03D4, 0x8E11);
+    // Vert. Display enable end (same as hor. roughly)
+    outw(0x03D4, 0x8F12);
+    // Start vert. blanking (same as hor. roughly)
+    outw(0x03D4, 0x9615);
+    // End vert. blanking (same as hor. roughly)
+    outw(0x03D4, 0xB916);
+    // Select register 0x08 (Preset row scan)
+    // ________________________
+    // |  7  6  5   4 3 2 1 0 |
+    // | ---| BP |     SRS    |
+    // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    // !!! Value is the stated in the register plus 1
+    // BP = 00 -> Are set that way in all BIOS modes
+    // SRS = 0000 -> Sets starting row after a vertical retrace
+    outw(0x03D4, 0x0008);
 
-    w = width_320;
-    val = R_COM + R_W320;
-    h = height_200;
-    val |= R_H200;
+    /// Misc CRT regs:
+    // Select register 0x14 (Underline location)
+    // _________________________
+    // |  7  6   5   4 3 2 1 0 |
+    // | ---|DW|CB4|    SUL    |
+    // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    // !!! Value is the stated in the register plus 1
+    // DW = 1 -> Use DWord for addressing
+    // CB4 = 0 -> Enable to divide memory counter freq. by 4
+    // SUL = 0 -> Horizontal scan line where underline occurs is 1
+    outw(0x03D4, 0x4014);
+    // Select register 0x17 (CRT mode control)
+    // __________________________________
+    // |  7  6   5   4   3   2   1   0  |
+    // | RST|WB|ADW|---|CB2|HRS|SRC|CMS0|
+    // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    // RST = 1 -> Pull to zero to disable display
+    // WB = 0 -> Adressing shenanigans, look at page 92 of the "IBM VGA XGA Technical Reference Manual" from 1992
+    // ADW = 1 -> Unlocks memory
+    // CB2 = 0 -> Would divide memory counter freq. by 2 if set
+    // HRS = 0 -> Would double resolution if set
+    // SRC = 1 -> Sets source of bit 14 of output multiplexer (?)
+    // CMS0 = 1 -> Sets source of bit 13 of output multiplexer (?)
+    outw(0x03D4, 0xA317);
+    //// Sequencer registers:
+    // Select register 0x04 (Memory mode)
+    // ________________________________
+    // |  7   6   5   4   3  2  1   0 |
+    // | ---|---|---|---|CH4|OE|EM|---|
+    // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    // CH4 = 1 -> Causes the 2 low order bits of adress to select map, making mode appear linear
+    // OE = 1 -> Don't use Odd/Even, access data in maps sequentially
+    // EM = 1 -> Extended memory (use 256K)
+    outw(0x03C4, 0x0E04);
+    // Select register 0x01 (Clocking mode)
+    // _____________________________
+    // |  7   6  5   4  3  2  1  0 |
+    // | ---|---|SO|SH4|DC|SL|1|D89|
+    // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    // SO = 0 -> Would turn the screen off (hence the name)
+    // SH4 = 0 -> Should always be cleared
+    // DC = 0 -> Would divide dot clock by 2
+    // SL = 0 -> Should always be cleared
+    // D89 = 1 -> Should be set unless using modes 0,1,2,3 and 7
+    outw(0x03C4, 0x0301);
+    // Select register 0x02 (Map mask)
+    // __________________________________
+    // |  7   6   5   4   3   2   1   0 |
+    // | ---|---|---|---|M3E|M2E|M1E|M0E|
+    // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    // MXE = 1 -> Enable map X (enable all)
+    outw(0x03C4, 0x0f02);
+    //// Graphics controller registers:
+    // Select register 0x05 (Graphics mode)
+    // _______________________________
+    // |  7   6   5  4  3   2   1  0 |
+    // | ---|C256|SR|OE|RM|---|  WM  |
+    // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    // C256 = 1 -> Enable 256-color mode
+    // SR = 0 -> Only used in modes 4 and 5
+    // OE = 0 -> Same as the other OE
+    // RM = 0 -> Do NOT use Color Compare registers
+    // WM = 0 ->   "Each memory map is written with the system data rotated by the count
+    //              in the Data Rotate register. If the set/reset function is enabled for a
+    //              specific map, that map receives the 8-bit value contained in the
+    //              Set/Reset register" (page 103 of tech manual)
+    outw(0x03CE, 0x4005);
+    // Select register 0x06 (MISC Register)
+    // _______________________________
+    // |  7   6   5   4   3  2  1  0 |
+    // | ---|---|---|---|  MM  |OE|GM|
+    // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    // MM = 01 -> A000 -> AFFF
+    // OE = 0 -> Do i need to keep explaining it
+    // GM = 1 -> We are in a graphics mode :)
+    outw(0x03CE, 0x0506); // graph mode & A000-AFFF
 
-    // here goes the actual modeswitch
-
-    outb(0x3c2, val);
-    outw(0x3d4, 0x0e11); // enable regs 0-7
-
-    for (a = 0; a < size(hor_regs); ++a)
-        outw(0x3d4, (unsigned short)((w[a] << 8) + hor_regs[a]));
-    for (a = 0; a < size(ver_regs); ++a)
-        outw(0x3d4, (unsigned short)((h[a] << 8) + ver_regs[a]));
-
-    outw(0x3d4, 0x0008); // vert.panning = 0
-
-    outw(0x3d4, 0x4014);
-    outw(0x3d4, 0xa317);
-    outw(0x3c4, 0x0e04);
-    outw(0x3c4, 0x0101);
-
-    outw(0x3c4, 0x0f02); // enable writing to all planes
-    outw(0x3ce, 0x4005); // 256color mode
-    outw(0x3ce, 0x0506); // graph mode & A000-AFFF
-
-    inb(0x3da);
-    outb(0x3c0, 0x30);
-    outb(0x3c0, 0x41);
-    outb(0x3c0, 0x33);
-    outb(0x3c0, 0x00);
-    for (a = 0; a < 16; a++) // Set EGA palette
+    //// Attribute controller registers:
+    inb(0x03DA); // Clear flip flop from Adress Register
+    outb(0x03C0, 0x30); // IPAS = 1 -> Set normal operation, select register 0x10           # Address
+    outb(0x03C0, 0x41); // PW = 1 -> 256-color mode, G = 1 -> Graphics mode selected        # 0x10
+    outb(0x03C0, 0x33); // IPAS = 1, select register 0x13                                   # Address
+    outb(0x03C0, 0x00); // Do not shift the image to the left (shift it by 0)               # 0x13
+    // TODO: Set palette properly
+    for (int i = 0; i < 16; i++) // Set EGA palette
     {
-        outb(0x3c0, (unsigned char)a);
-        outb(0x3c0, (unsigned char)a);
+        outb(0x03C0, (unsigned char)i);
+        outb(0x03C0, (unsigned char)i);
     }
-    outb(0x3c0, 0x20); // enable video
-    sti();
+    outb(0x03C0, 0x20); // Set IPAS = 1 again, making sure output Color is indeed enabled   # Address
     graphicsMode = GRAPHICS;
+    sti();
     return;
 }
 

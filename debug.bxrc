@@ -5,4 +5,3 @@ boot: a
 # Enable debugger and breakpoints
 display_library: win32, options="gui_debug" 
 magic_break: enabled=1
-com1: enabled=1, mode=term, dev=COM1

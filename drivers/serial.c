@@ -40,6 +40,7 @@ int is_transmit_empty(unsigned short port)
 
 void write_serial(char c, unsigned short port)
 {
+    if(!serial_available()) return;
     while (is_transmit_empty(port) == 0)
         ;
 

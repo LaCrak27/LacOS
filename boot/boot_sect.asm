@@ -23,8 +23,6 @@ a20_on:
     call get_map
 
     call load_kernel
-    
-    call video_setup
 
     call switch_to_pm ; We will never return from this
 
