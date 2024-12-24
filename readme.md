@@ -9,7 +9,7 @@
 /\  __ \   /\  ___\              
 \ \ \_\ \  \ \___  \             
  \ \_____\  \/\_____\            
-  \/_____/   \/_____/    v0.5        
+  \/_____/   \/_____/            
 ```
 # Running the OS
 To build the OS using the provided makefile, a linux enviroment is the required, be it native or wsl. 
