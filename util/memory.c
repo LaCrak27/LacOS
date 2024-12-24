@@ -122,7 +122,7 @@ void *malloc(unsigned long blockLength)
             }
             break;
         }
-        else if (blockPointer->magicNumber == 0x69) // There is a next block, and the current one isn't big enough or occupied
+        else // There is a next block, and the current one isn't big enough or occupied
         {
             blockPointer = blockPointer->nextBlockAdress;
         }

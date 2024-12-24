@@ -360,7 +360,7 @@ int sh_graphics(int argc, char **argv)
     unsigned char temp2 = 0;
     while (1)
     {
-        temp = 1;
+        temp = 0;
         for (int i = 0; i < 320 * 200; i++)
         {
             g_put_pixel_linear(i, temp);
@@ -497,7 +497,7 @@ int sh_bdpl(int argc, char **argv)
     unsigned fn = 0;             // Frame number
     while (1)
     {
-        c = buffer[position] == 1 ? 7 : 0; // Set starting frame color
+        c = buffer[position] == 1 ? WHITE : BLACK; // Set starting frame color
         position++;
         unsigned short framePos = 0;
         while (1) // Start of new frame
@@ -523,7 +523,7 @@ int sh_bdpl(int argc, char **argv)
                 g_put_pixel_linear(framePos, c);
                 framePos++;
             }
-            c = !c ? 7 : 0; // Change value of c
+            c = !c ? WHITE : BLACK; // Change value of c
         }
     }
     return 0;

@@ -321,9 +321,9 @@ void switch_graphics()
     // !!! Value is the stated in the register plus 1
     // MSL = 1 -> 2 scanlines per character row (which is why vertical lines are duplicated in MISC)
     outw(0x03D4, 0x4109);
-    // Vert. Retrace start (same as hor. retrace start roughly)
+    // Vert. Retrace start (same as hor. roughly)
     outw(0x03D4, 0x9C10);
-    // Vert. Retrace end (same as hor. retrace end roughly)
+    // Vert. Retrace end (same as hor. roughly)
     outw(0x03D4, 0x8E11);
     // Vert. Display enable end (same as hor. roughly)
     outw(0x03D4, 0x8F12);
@@ -419,32 +419,49 @@ void switch_graphics()
     outw(0x03CE, 0x0506); // graph mode & A000-AFFF
 
     //// Attribute controller registers:
-    inb(0x03DA); // Clear flip flop from Adress Register
+    inb(0x03DA);        // Clear flip flop from Adress Register (flip flop says which register you access)
     outb(0x03C0, 0x30); // IPAS = 1 -> Set normal operation, select register 0x10           # Address
     outb(0x03C0, 0x41); // PW = 1 -> 256-color mode, G = 1 -> Graphics mode selected        # 0x10
     outb(0x03C0, 0x33); // IPAS = 1, select register 0x13                                   # Address
     outb(0x03C0, 0x00); // Do not shift the image to the left (shift it by 0)               # 0x13
-    // TODO: Set palette properly
-    for (int i = 0; i < 16; i++) // Set EGA palette
+
+    //// Set palette (same as text mode, 16 colors):
+    for (int i = 0; i < 15; i++)
     {
-        outb(0x03C0, (unsigned char)i);
-        outb(0x03C0, (unsigned char)i);
+        unsigned char base = 16*i;
+        g_set_color(base + BLACK, 0, 0, 0);
+        g_set_color(base + BLUE, 0, 0, 168);
+        g_set_color(base + GREEN, 0, 168, 0);
+        g_set_color(base + CYAN, 0, 168, 168);
+        g_set_color(base + RED, 168, 0, 0);
+        g_set_color(base + PURPLE, 168, 0, 168);
+        g_set_color(base + BROWN, 168, 84, 0);
+        g_set_color(base + GRAY, 168, 168, 168);
+        g_set_color(base + DARK_GRAY, 84, 84, 84);
+        g_set_color(base + LIGHT_BLUE, 84, 84, 252);
+        g_set_color(base + LIGHT_GREEN, 84, 252, 84);
+        g_set_color(base + LIGHT_CYAN, 84, 252, 252);
+        g_set_color(base + LIGHT_RED, 252, 84, 84);
+        g_set_color(base + LIGHT_PURPLE, 252, 84, 252);
+        g_set_color(base + YELLOW, 252, 168, 84);
+        g_set_color(base + WHITE, 252, 252, 252);
     }
-    outb(0x03C0, 0x20); // Set IPAS = 1 again, making sure output Color is indeed enabled   # Address
+
+    outb(0x03C0, 0x20); // Set IPAS = 1 again, making sure output color is indeed enabled   # Address
     graphicsMode = GRAPHICS;
     sti();
     return;
 }
 
 // Sets a color in the palette for graphic modes.
-// R, G and B must be between 0 and 63 (6-bit color)
+// R, G and B will be compressed to 0-63 from 0-255
 void g_set_color(unsigned char color_number, unsigned char R, unsigned char G, unsigned char B)
 {
     outb(0x03C6, 0xff);         // Mask all registers to allow updating
     outb(0x03C8, color_number); // Select color
-    outb(0x03C9, R);            // Write values sequentially
-    outb(0x03C9, G);
-    outb(0x03C9, B);
+    outb(0x03C9, R / 4);        // Write values sequentially
+    outb(0x03C9, G / 4);
+    outb(0x03C9, B / 4);
 }
 
 void g_put_pixel_linear(int pixel_pos, unsigned char color)
