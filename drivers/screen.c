@@ -6,6 +6,48 @@
 
 char graphicsMode = TEXT;
 
+/* Source ASM from osdev.org
+		;clear even/odd mode
+		mov			dx, 03ceh
+		mov			ax, 5
+		out			dx, ax
+		;map VGA memory to 0A0000h
+		mov			ax, 0406h
+		out			dx, ax
+		;set bitplane 2
+		mov			dx, 03c4h
+		mov			ax, 0402h
+		out			dx, ax
+		;clear even/odd mode (the other way, don't ask why)
+		mov			ax, 0604h
+		out			dx, ax
+		;copy charmap
+		mov			esi, 0A0000h
+		mov			ecx, 256
+		;copy 16 bytes to bitmap
+@@:		movsd
+		movsd
+		movsd
+		movsd
+		;skip another 16 bytes
+		add			esi, 16
+		loop			@b
+		;restore VGA state to normal operation
+		mov			ax, 0302h
+		out			dx, ax
+		mov			ax, 0204h
+		out			dx, ax
+		mov			dx, 03ceh
+		mov			ax, 1005h
+		out			dx, ax
+		mov			ax, 0E06h
+		out			dx, ax 
+*/
+void init_screen()
+{
+
+}
+
 unsigned char attribute_byte = 0x07;
 // Sets the foreground text color
 void set_fg(unsigned char fgVal)
@@ -199,12 +241,6 @@ int handle_scrolling(int cursor_offset)
     // Generate new offset
     cursor_offset -= 2 * MAX_COLS;
     return cursor_offset;
-}
-
-// Switches to text mode
-// (mode 03h)
-void switch_text()
-{
 }
 
 // Switches to graphics mode
@@ -450,6 +486,7 @@ void switch_graphics()
     outb(0x03C0, 0x20); // Set IPAS = 1 again, making sure output color is indeed enabled   # Address
     graphicsMode = GRAPHICS;
     sti();
+    g_cls();
     return;
 }
 
@@ -476,4 +513,54 @@ void g_cls()
     {
         g_put_pixel_linear(i, 0);
     }
+}
+
+// Switches to text mode
+// (mode 03h)
+void switch_text()
+{
+    cli();
+    // All registers are already explained in switch_graphics(), so I will not go into detail here
+    outb(0x03C2, 0x67);
+    outw(0x03D4, 0x8E11);
+
+    outw(0x03D4, 0x5F00);
+    outw(0x03D4, 0x4F01);
+    outw(0x03D4, 0x5002);
+    outw(0x03D4, 0x8203);
+    outw(0x03D4, 0x5504);
+    outw(0x03D4, 0x8105);
+    outw(0x03D4, 0x2813);
+
+    outw(0x03D4, 0xBF06);
+    outw(0x03D4, 0x1F07);
+    outw(0x03D4, 0x4F09);
+    outw(0x03D4, 0x9C10);
+    outw(0x03D4, 0x8E11);
+    outw(0x03D4, 0x8F12);
+    outw(0x03D4, 0x9615);
+    outw(0x03D4, 0xB916);
+    outw(0x03D4, 0x0008);
+
+    outw(0x03D4, 0x1F14);
+    outw(0x03D4, 0xA317);
+    outw(0x03C4, 0x0704);
+    outw(0x03C4, 0x0001);
+    outw(0x03C4, 0x0f02);
+    outw(0x03C4, 0x0003);
+
+    outw(0x03CE, 0x1005);
+    outw(0x03CE, 0x0E06);
+
+    inb(0x03DA);        
+    outb(0x03C0, 0x30); 
+    outb(0x03C0, 0x0C); 
+    outb(0x03C0, 0x33); 
+    outb(0x03C0, 0x08); 
+
+    outb(0x03C0, 0x20); 
+    graphicsMode = TEXT;
+    sti();
+    clear_screen();
+    return;
 }

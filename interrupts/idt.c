@@ -4,17 +4,17 @@
 #include "../util/low_level.h"
 #include "../util/debug.h"
 
-struct IdtEntryStruct idtEntries[256];
-struct IdtPointerStruct idtPtr;
+IdtEntryStruct idtEntries[256];
+IdtPointerStruct idtPtr;
 
 extern void idt_flush(unsigned long x);
-void syshalt(char *errorMessage, struct InterruptRegisters *regs);
+void syshalt(char *errorMessage, InterruptRegisters *regs);
 
 void init_idt()
 {
-    idtPtr.limit = sizeof(struct IdtEntryStruct) * 256 - 1;
+    idtPtr.limit = sizeof(IdtEntryStruct) * 256 - 1;
     idtPtr.base = (unsigned long)&idtEntries;
-    memset(&idtEntries, 0, sizeof(struct IdtEntryStruct) * 256);
+    memset(&idtEntries, 0, sizeof(IdtEntryStruct) * 256);
 
     // (There are 2 PICs)
     // 0x20 commands & 0x21 data
@@ -134,7 +134,7 @@ char *exception_messages[32] = {
     "Reserved",
     "Reserved"};
 
-void isr_handler(struct InterruptRegisters *regs)
+void isr_handler(InterruptRegisters *regs)
 {
     //println(uitoa(regs->int_no));
     if (regs->int_no < 32)
@@ -148,7 +148,7 @@ void except_intern(char* errorMessage)
     syshalt(errorMessage, NULL);
 }
 
-void syshalt(char *errorMessage, struct InterruptRegisters *regs)
+void syshalt(char *errorMessage, InterruptRegisters *regs)
 {
     set_fg(WHITE);
     set_bg(BLUE);
@@ -189,7 +189,7 @@ void *irqRoutines[16] = {
     0, 0, 0, 0, 0, 0, 0, 0};
 
 // Essentialy the equivalent to registering an event
-void irq_install_handler(int irq, void (*handler)(struct InterruptRegisters *r))
+void irq_install_handler(int irq, void (*handler)(InterruptRegisters *r))
 {
     irqRoutines[irq] = handler;
 }
@@ -200,9 +200,9 @@ void irq_uninstall_handler(int irq)
     irqRoutines[irq] = 0;
 }
 
-void irq_handler(struct InterruptRegisters *regs)
+void irq_handler(InterruptRegisters *regs)
 {
-    void (*handler)(struct InterruptRegisters *regs);
+    void (*handler)(InterruptRegisters *regs);
 
     handler = irqRoutines[regs->int_no - 32];
 

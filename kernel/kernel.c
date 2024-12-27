@@ -1,5 +1,5 @@
 #ifndef COMP_DATE
-#define COMP_DATE "Unknown date"
+#define COMP_DATE "Unknown Date"
 #endif
 #include "../drivers/screen.h"
 #include "../drivers/serial.h"

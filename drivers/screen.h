@@ -1,3 +1,6 @@
+#ifndef __SCREEN_H__
+#define __SCREEN_H__
+
 #define TEXT_VIDEO_ADRESS 0xB8000
 #define GRAPHICS_VIDEO_ADRESS 0xA0000
 #define MAX_ROWS 25
@@ -25,6 +28,10 @@
 //Graphic modes
 #define TEXT 3
 #define GRAPHICS 0x13
+typedef struct
+{
+    /* data */
+} Font;
 void set_fg(unsigned char fgVal);
 void set_bg(unsigned char bgVal);
 void set_attr_byte(unsigned char attrByte);
@@ -46,3 +53,7 @@ void switch_graphics();
 void g_set_color(unsigned char color_number, unsigned char R, unsigned char G, unsigned char B);
 void g_put_pixel_linear(int pixel_pos, unsigned char color);
 void g_cls();
+void switch_text();
+// TODO: Get font map from VGA ram on startup to be able to set it when switching to text mode
+
+#endif //__SCREEN_H__

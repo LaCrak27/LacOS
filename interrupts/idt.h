@@ -1,32 +1,35 @@
-struct IdtEntryStruct
+#ifndef __IDT_H__
+#define __IDT_H__
+
+typedef struct 
 {
     unsigned short baseLow;
     unsigned short sel;
     unsigned char always0;
     unsigned char flags;
     unsigned short baseHigh;
-}__attribute__((packed));
+}__attribute__((packed)) IdtEntryStruct;
 
-struct IdtPointerStruct
+typedef struct
 {
     unsigned short limit;
     unsigned long base;
-}__attribute__((packed));
+}__attribute__((packed)) IdtPointerStruct;
 
-struct InterruptRegisters
+typedef struct
 {
     unsigned long cr2;
     unsigned long ds;
     unsigned long edi, esi, ebp, esp, ebx, edx, ecx, eax;
     unsigned long int_no, err_code;
     unsigned long eip, csm, eflags, eseresp, ss;
-};
+} InterruptRegisters;
 
 void init_idt();
 void set_idt_gate(unsigned char num, unsigned long base, unsigned short sel, unsigned char flags);
 
-void isr_handler(struct InterruptRegisters* regs);
-void irq_install_handler(int irq, void (*handler)(struct InterruptRegisters *r));
+void isr_handler(InterruptRegisters* regs);
+void irq_install_handler(int irq, void (*handler)(InterruptRegisters *r));
 void irq_uninstall_handler(int irq);
 void except_intern(char* errorMessage);
 
@@ -85,3 +88,4 @@ extern void irq15();
 
 extern void idt_flush(unsigned long idtptr);
 
+#endif // __IDT_H__

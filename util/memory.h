@@ -1,3 +1,6 @@
+#ifndef __MEMORY_H__
+#define __MEMORY_H__
+
 unsigned long initmm();
 void *malloc(unsigned long blockLenghth);
 void except(char* msg);
@@ -13,4 +16,8 @@ struct MemoryBlockHeader
     unsigned long blockSize;
     struct MemoryBlockHeader *previousBlockAdress;
     struct MemoryBlockHeader *nextBlockAdress;
-} __attribute__((packed));
+}__attribute__((packed));
+
+typedef struct MemoryBlockHeader MemoryBlockHeader;
+
+#endif // __MEMORY_H__

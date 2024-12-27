@@ -22,6 +22,8 @@ int sh_meminfo(int argc, char **argv);
 int sh_logo(int argc, char **argv);
 int sh_graphics(int argc, char **argv);
 int sh_bdpl(int argc, char **argv);
+int sh_beep(int argc, char **argv);
+
 
 char *builtin_cmds[] = {
     "clear",
@@ -36,6 +38,7 @@ char *builtin_cmds[] = {
     "logo",
     "graphics",
     "bdpl",
+    "beep",
     NULL};
 
 int (*builtin_func[])(int, char **) = {
@@ -50,7 +53,8 @@ int (*builtin_func[])(int, char **) = {
     &sh_meminfo,
     &sh_logo,
     &sh_graphics,
-    &sh_bdpl};
+    &sh_bdpl,
+    &sh_beep};
 
 char lastLine[MAX_COLS - 2] = {0};
 void init_shell()
@@ -358,17 +362,15 @@ int sh_graphics(int argc, char **argv)
     switch_graphics();
     unsigned char temp = 0;
     unsigned char temp2 = 0;
-    while (1)
+    temp = 0;
+    for (int i = 0; i < 320 * 200; i++)
     {
-        temp = 0;
-        for (int i = 0; i < 320 * 200; i++)
-        {
-            g_put_pixel_linear(i, temp);
-            if (!((i + temp2) % 4000))
-                temp++;
-        }
-        temp2++;
+        g_put_pixel_linear(i, temp);
+        if (!((i + temp2) % 4000))
+            temp++;
     }
+    temp2++;
+    switch_text();
     return 0;
 }
 
@@ -423,10 +425,10 @@ int sh_bdpl(int argc, char **argv)
     int ogsize = size;
     while (size > 0)
     {
-        if(cylToRead > 79)
+        if (cylToRead > 79)
         {
             println("Please insert the next disk and press any key to continue, or press q to abort");
-            if(read_key() == 'q')
+            if (read_key() == 'q')
             {
                 free(fbuffer);
                 free(buffer);
@@ -439,7 +441,10 @@ int sh_bdpl(int argc, char **argv)
         print("Reading cylinder: ");
         println(itoa(cylToRead));
         println("------------");
-        flp_raw_read_cyl(cylToRead, fbuffer);
+        while (flp_raw_read_cyl(cylToRead, fbuffer))
+        {
+            println("Retrying read...");
+        }
         size -= floppy_dmalen;
         if (size >= 0)
         {
@@ -454,7 +459,7 @@ int sh_bdpl(int argc, char **argv)
     }
     buffer[ogsize] = 0xFC;
     buffer[ogsize + 1] = 0xFF;
-    buffer[ogsize + 2] = 0x69;
+    buffer[ogsize + 2] = 0x69; // This could be any value
     buffer[ogsize + 3] = 0xFC;
     buffer[ogsize + 4] = 0xFF; // Terminate buffer (In case of misaligment, make it so it always detects it,
                                // even if the end of the file is messed up)
@@ -526,5 +531,18 @@ int sh_bdpl(int argc, char **argv)
             c = !c ? WHITE : BLACK; // Change value of c
         }
     }
+    return 0;
+}
+
+int sh_beep(int argc, char **argv)
+{
+    int ms = atoi(argv[2]);
+    int freq = atoi(argv[1]);
+    if(freq == -1 || ms == -1)
+    {
+        println("Incorrect usage. Correct usage is 'beep <freq> <millis>.");
+        return 1;
+    }
+    beep(freq, ms);
     return 0;
 }

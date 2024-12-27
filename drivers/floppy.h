@@ -47,4 +47,4 @@ enum
 
 int init_floppy();
 char flp_avail();
-void flp_raw_read_cyl(unsigned cyl, unsigned char *buffer);
+int flp_raw_read_cyl(unsigned cyl, unsigned char *buffer);

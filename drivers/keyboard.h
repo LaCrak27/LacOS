@@ -1,3 +1,4 @@
+#include "../interrupts/idt.h"
 #define UNKNOWN 0xFFFFFFFF
 #define ESC (0xFFFFFFFF - 1)
 #define CTRL (0xFFFFFFFF - 2)
@@ -32,7 +33,6 @@
 #define ALTGR (0xFFFFFFFF - 31)
 #define NUMLCK (0xFFFFFFFF - 32)
 
-typedef struct InterruptRegisters InterruptRegisters;
 unsigned long read_key();
 void init_keyboard();
 void keyboard_handler(InterruptRegisters *regs);

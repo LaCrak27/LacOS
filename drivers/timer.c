@@ -1,7 +1,7 @@
 #include "../util/low_level.h"
 #include "../interrupts/idt.h"
 #include "timer.h"
-void irq0_handler_intern(struct InterruptRegisters *regs);
+void irq0_handler_intern(InterruptRegisters *regs);
 
 static unsigned long ms = 0;
 void init_timer()
@@ -24,7 +24,7 @@ void sleep(unsigned long millis)
     return;
 }
 
-void irq0_handler_intern(struct InterruptRegisters *regs)
+void irq0_handler_intern(InterruptRegisters *regs)
 {
     ms++;
 }

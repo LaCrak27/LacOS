@@ -1,3 +1,6 @@
+#ifndef __UTIL_H__
+#define __UTIL_H__
+
 #define NULL 0
 #define TRUE 1
 #define FALSE 0
@@ -26,11 +29,12 @@ int min(int a, int b);
 int arrlen(void **arr);
 void reboot();
 
-struct MapEntryStruct
+typedef struct
 {
     unsigned long long base;
     unsigned long long lenght;
     unsigned long type;
     unsigned long acpi;
-} __attribute__((packed));
+} __attribute__((packed)) MapEntryStruct;
 
+#endif // __UTIL_H__

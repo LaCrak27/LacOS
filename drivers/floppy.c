@@ -448,12 +448,13 @@ int floppy_write_track(unsigned cyl)
 
 // Warning: Always read directly from floppy and doesn't update cache. Should only be used for debugging purposes.
 // Buffer MUST be of size floppy_dmalen.
-void flp_raw_read_cyl(unsigned cyl, unsigned char *buffer)
+int flp_raw_read_cyl(unsigned cyl, unsigned char *buffer)
 {
 
     if(floppy_read_track(cyl))
     {
-        except_intern(uitoa(cyl));
+        return 1;
     }
     memcpy(floppy_dmabuf, buffer, floppy_dmalen);
+    return 0;
 }

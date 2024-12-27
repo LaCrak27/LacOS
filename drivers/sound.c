@@ -26,9 +26,9 @@ void nosound()
     outb(0x61, tmp);
 }
 
-void beep()
+void beep(long freq, long ms)
 {
-    play_sound(1500);
-    sleep(333);
+    play_sound(freq);
+    sleep(ms);
     nosound();
 }

@@ -21,8 +21,6 @@
 // There's always gonna be a block at the memory start adress pointing to the next adress after it
 
 // Private function, types and variable declarations:
-
-typedef struct MemoryBlockHeader MemoryBlockHeader;
 void writeHeader(MemoryBlockHeader *adress,
                  unsigned char isFree,
                  unsigned long blockSize,
@@ -40,7 +38,7 @@ unsigned long initmm()
 {
     int entryIndex = 0;
     unsigned char *mapPointer = (char *)0x1001;
-    struct MapEntryStruct *structPointer = (struct MapEntryStruct *)0x1002;
+    MapEntryStruct *structPointer = (MapEntryStruct *)0x1002;
     for (int i = 0; i < *mapPointer; i++) // Once for each entry:
     {
         if (structPointer->type == (unsigned long)1) // If entry represents a usable block
