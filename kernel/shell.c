@@ -24,6 +24,7 @@ int sh_graphics(int argc, char **argv);
 int sh_bdpl(int argc, char **argv);
 int sh_beep(int argc, char **argv);
 int sh_reset(int argc, char **argv);
+int sh_crash(int argc, char **argv);
 
 char *builtin_cmds[] = {
     "clear",
@@ -40,6 +41,7 @@ char *builtin_cmds[] = {
     "bdpl",
     "beep",
     "reset",
+    "crash",
     NULL};
 
 int (*builtin_func[])(int, char **) = {
@@ -56,7 +58,8 @@ int (*builtin_func[])(int, char **) = {
     &sh_graphics,
     &sh_bdpl,
     &sh_beep,
-    &sh_reset};
+    &sh_reset,
+    &sh_crash};
 
 char lastLine[MAX_COLS - 2] = {0};
 void init_shell()
@@ -372,6 +375,7 @@ int sh_graphics(int argc, char **argv)
             temp++;
     }
     temp2++;
+    read_key();
     switch_text();
     return 0;
 }
@@ -418,6 +422,8 @@ int sh_bdpl(int argc, char **argv)
     {
         println("Error allocating buffer");
         println("Hint: Check if you have enough memory by using meminfo");
+        free(buffer);
+        free(fbuffer);
         return 2;
     }
     unsigned long position = 0;
@@ -562,4 +568,9 @@ int sh_reset(int argc, char **argv)
         }
     }
     reset();
+}
+
+int sh_crash(int argc, char **argv)
+{
+    int funni = 0x69 / *(char *)0x7DF0;
 }

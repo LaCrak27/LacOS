@@ -226,6 +226,7 @@ void clear_screen()
         }
     }
     set_cursor(get_screen_offset(0, 0));
+    write_serial('\r', COM1_PORT);
 }
 
 int handle_scrolling(int cursor_offset)
