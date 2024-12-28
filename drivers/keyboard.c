@@ -122,7 +122,14 @@ void e_kpress(char scanCode, char press)
             if(lowercase[scanCode] == 'c' && ctrlPressed)
             {
                 outb(0x20, 0x20); // Aknowledge interrupt to the PIC
-                reset();
+                if(capsOn)
+                {
+                    reboot();
+                }
+                else
+                {
+                    reset();
+                }
             }
             if (capsOn || capsLock)
             {

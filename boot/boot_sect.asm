@@ -34,7 +34,6 @@ a20_on:
 %include "boot/memory/memcpy.asm"
 %include "boot/disk/disk_load.asm"
 %include "boot/pm/gdt.asm"
-%include "boot/video/video_setup.asm"
 %include "boot/pm/switch_to_pm.asm"
 
 [bits 16]
