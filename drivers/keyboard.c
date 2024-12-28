@@ -3,6 +3,7 @@
 #include "screen.h"
 #include "keyboard.h"
 #include "serial.h"
+#include "../util/util.h"
 
 void e_kpress(char scanCode, char press);
 
@@ -78,14 +79,25 @@ void init_keyboard()
 
 void e_kpress(char scanCode, char press)
 {
+    // press is inverted for some reason
     static char capsOn = 0;
     static char capsLock = 0;
     static char ctrlPressed = 0;
     switch (scanCode)
     {
+    case 29: // LCtrl
+        if(!press)
+        {
+            ctrlPressed = 1;
+        }
+        else
+        {
+            ctrlPressed = 0;
+        }
+        break;
     case 42:
         // shift key
-        if (press == 0)
+        if (!press)
         {
             capsOn = 1;
         }
@@ -95,18 +107,23 @@ void e_kpress(char scanCode, char press)
         }
         break;
     case 58:
-        if (!capsLock && press == 0)
+        if (!capsLock && !press)
         {
             capsLock = 1;
         }
-        else if (capsLock && press == 0)
+        else if (capsLock && !press)
         {
             capsLock = 0;
         }
         break;
     default:
-        if (press == 0)
+        if (!press)
         {
+            if(lowercase[scanCode] == 'c' && ctrlPressed)
+            {
+                outb(0x20, 0x20); // Aknowledge interrupt to the PIC
+                reset();
+            }
             if (capsOn || capsLock)
             {
                 resKey = (uppercase[scanCode]);
