@@ -69,6 +69,8 @@ void main()
     {
         except("Magic byte check failed, bootloader could not find out memory map.");
     }
+    get_font();
+    set_font();
     while (1) // Loop in case we exit shell somehow
     {
         init_shell();

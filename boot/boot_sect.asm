@@ -48,7 +48,7 @@ load_kernel:
 [bits 32]
 ; We arrive here after switching to PM
 begin_pm:
-    call KERNEL_OFFSET + 0x200 ; Jump to where we loaded the kernel (skip boot sect) :)
+    jmp KERNEL_OFFSET + 0x200 ; Jump to where we loaded the kernel (skip boot sect) :)
 hang:
     jmp $ ; In case it doenst work
 

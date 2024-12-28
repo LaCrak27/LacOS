@@ -345,7 +345,7 @@ int arrlen(void **arr)
     return i;
 }
 
-// Reboots the machine
+// Hard reboots the machine
 void reboot()
 {
     unsigned char good = 0x02;
@@ -355,4 +355,14 @@ void reboot()
     while (1)
     {
     }
+}
+
+// Soft reboots the machine, not actually turning it off
+void reset()
+{
+    asm(
+    "mov ebp, 0x90000\n"
+    "mov esp, ebp\n"    // Clear stack
+    "jmp 0x101F0"       // Jump to main
+    );
 }

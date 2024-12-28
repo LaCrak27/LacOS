@@ -80,6 +80,7 @@ void e_kpress(char scanCode, char press)
 {
     static char capsOn = 0;
     static char capsLock = 0;
+    static char ctrlPressed = 0;
     switch (scanCode)
     {
     case 42:

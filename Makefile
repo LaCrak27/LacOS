@@ -1,7 +1,6 @@
 C_SOURCES = $(wildcard kernel/*.c drivers/*.c interrupts/*.c util/*.c)
 OBJ = ${C_SOURCES:.c=.o}
 SOBJ = ${ASM_SOURCES:.asm=.o}
-HEADERS = $(wildcard kernel/*.h drivers/*.h interrupts/*.h util/*.c)
 ASM_SOURCES = $(wildcard interrupts/*.asm)
 
 all: clean LacOS.img
@@ -25,11 +24,11 @@ boot_sect.bin: boot/boot_sect.asm
 kernel.bin: ${OBJ} ${SOBJ} kernel/kernel_entry.o
 	ld -m elf_i386 -o $@ -Ttext 0x101F0 kernel/kernel_entry.o $^ --oformat binary
 clean:
-	rm -fr *.bin *.dis *.o *.ini *.img
-	rm -fr kernel/*.o boot/*.bin drivers/*.o
+	find . -name *.o -delete
+	rm -rf *.bin *.img
 
-%.o: %.c ${HEADERS}
-	gcc -D COMP_DATE='"$(shell date)"' -mno-mmx -mno-sse -mno-sse2 -fno-pie -ffreestanding -m32 -c $< -o $@
+%.o: %.c
+	gcc -masm=intel -D COMP_DATE='"$(shell date)"' -mno-mmx -mno-sse -mno-sse2 -fno-pie -ffreestanding -m32 -c $< -o $@
 
 kernel/kernel_entry.o: kernel/kernel_entry.asm
 	nasm $< -f elf -o $@

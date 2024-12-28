@@ -28,10 +28,9 @@
 //Graphic modes
 #define TEXT 3
 #define GRAPHICS 0x13
-typedef struct
-{
-    /* data */
-} Font;
+
+void get_font();
+void set_font();
 void set_fg(unsigned char fgVal);
 void set_bg(unsigned char bgVal);
 void set_attr_byte(unsigned char attrByte);
@@ -54,6 +53,5 @@ void g_set_color(unsigned char color_number, unsigned char R, unsigned char G, u
 void g_put_pixel_linear(int pixel_pos, unsigned char color);
 void g_cls();
 void switch_text();
-// TODO: Get font map from VGA ram on startup to be able to set it when switching to text mode
 
 #endif //__SCREEN_H__

@@ -23,7 +23,7 @@ int sh_logo(int argc, char **argv);
 int sh_graphics(int argc, char **argv);
 int sh_bdpl(int argc, char **argv);
 int sh_beep(int argc, char **argv);
-
+int sh_reset(int argc, char **argv);
 
 char *builtin_cmds[] = {
     "clear",
@@ -39,6 +39,7 @@ char *builtin_cmds[] = {
     "graphics",
     "bdpl",
     "beep",
+    "reset",
     NULL};
 
 int (*builtin_func[])(int, char **) = {
@@ -54,7 +55,8 @@ int (*builtin_func[])(int, char **) = {
     &sh_logo,
     &sh_graphics,
     &sh_bdpl,
-    &sh_beep};
+    &sh_beep,
+    &sh_reset};
 
 char lastLine[MAX_COLS - 2] = {0};
 void init_shell()
@@ -521,7 +523,10 @@ int sh_bdpl(int argc, char **argv)
             }
             if (currShort == 0xFFFC)
             {
-                reboot();
+                switch_text();
+                free(buffer);
+                free(fbuffer);
+                return 0;
             }
             for (int i = 0; i < currShort; i++)
             {
@@ -538,11 +543,23 @@ int sh_beep(int argc, char **argv)
 {
     int ms = atoi(argv[2]);
     int freq = atoi(argv[1]);
-    if(freq == -1 || ms == -1)
+    if (freq == -1 || ms == -1)
     {
         println("Incorrect usage. Correct usage is 'beep <freq> <millis>.");
         return 1;
     }
     beep(freq, ms);
     return 0;
+}
+
+int sh_reset(int argc, char **argv)
+{
+    for (int i = 1; i < argc; i++)
+    {
+        if (strcmp(argv[i], "-hard"))
+        {
+            reboot();
+        }
+    }
+    reset();
 }

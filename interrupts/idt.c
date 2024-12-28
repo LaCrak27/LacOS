@@ -19,6 +19,8 @@ void init_idt()
     // (There are 2 PICs)
     // 0x20 commands & 0x21 data
     // 0xA0 commands & 0xA1 data
+    // Fun fact, the slave pic is connected to the master PIC
+    // via the IRQ2 line, so that's why you can never get an IRQ2.
     outb(0x20, 0x11);
     outb(0xA0, 0x11);
 

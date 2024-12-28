@@ -3,49 +3,60 @@
 #include "../util/util.h"
 #include "timer.h"
 #include "serial.h"
+#include "../util/memory.h"
 
 char graphicsMode = TEXT;
+unsigned char *font; // 4096 bytes
 
-/* Source ASM from osdev.org
-		;clear even/odd mode
-		mov			dx, 03ceh
-		mov			ax, 5
-		out			dx, ax
-		;map VGA memory to 0A0000h
-		mov			ax, 0406h
-		out			dx, ax
-		;set bitplane 2
-		mov			dx, 03c4h
-		mov			ax, 0402h
-		out			dx, ax
-		;clear even/odd mode (the other way, don't ask why)
-		mov			ax, 0604h
-		out			dx, ax
-		;copy charmap
-		mov			esi, 0A0000h
-		mov			ecx, 256
-		;copy 16 bytes to bitmap
-@@:		movsd
-		movsd
-		movsd
-		movsd
-		;skip another 16 bytes
-		add			esi, 16
-		loop			@b
-		;restore VGA state to normal operation
-		mov			ax, 0302h
-		out			dx, ax
-		mov			ax, 0204h
-		out			dx, ax
-		mov			dx, 03ceh
-		mov			ax, 1005h
-		out			dx, ax
-		mov			ax, 0E06h
-		out			dx, ax 
-*/
-void init_screen()
+// Gets the copy of the charset stored in VGA RAM. 
+// MUST BE CALLED FROM TEXT MODE OR BAD THINGS WILL HAPPEN.
+void get_font()
 {
+    font = (unsigned char *)malloc(4096);
+    outw(0x03CE, 0x0005); // Clear Odd/Even Mode in graphics controller.
+    outw(0x03CE, 0x0406); // Map memory to 0xA0000 (64K)
+    outw(0x03CE, 0x0204); // Select map (plane) 2 (font)
+    outw(0x03C4, 0x0402); // Select map (plane) 2 (font) (again)
+    outw(0x03C4, 0x0604); // Clear Odd/Even Mode in sequencer. (VGA moment)
+    unsigned char *src = (unsigned char *)0xA0000; // Points to the beginning of the plane
+    unsigned char *dest = font; // Points to whatever block we allocated
+    for(int i = 0; i < 256; i++)
+    {
+        memcpy(src, dest, 16); // Copy 16 bytes of memory
+        dest += 16;
+        src += 32; // Skip 16 bytes
+    }
+    // Return card to normal operation:
+    outw(0x03C4, 0x0302);
+    outw(0x03C4, 0x0204);
+    outw(0x03CE, 0x0004);
+    outw(0x03CE, 0x1005);
+    outw(0x03CE, 0x0E06);
+}
 
+// Sets the stored font into VGA RAM.
+// MUST BE CALLED FROM TEXT MODE OR BAD THINGS WILL HAPPEN.
+void set_font()
+{
+    outw(0x03CE, 0x0005); // Clear Odd/Even Mode in graphics controller.
+    outw(0x03CE, 0x0406); // Map memory to 0xA0000 (64K)
+    outw(0x03CE, 0x0204); // Select map (plane) 2 (font)
+    outw(0x03C4, 0x0402); // Select map (plane) 2 (font) (again)
+    outw(0x03C4, 0x0604); // Clear Odd/Even Mode in sequencer. (VGA moment)
+    unsigned char *dest = (unsigned char *)0xA0000; // Points to the beginning of the plane
+    unsigned char *src = font; // Points to whatever block we allocated
+    for(int i = 0; i < 256; i++)
+    {
+        memcpy(src, dest, 16); // Copy 16 bytes of memory
+        dest += 32; // Skip 16 bytes
+        src += 16;
+    }
+    // Return card to normal operation:
+    outw(0x03C4, 0x0302);
+    outw(0x03C4, 0x0204);
+    outw(0x03CE, 0x0004);
+    outw(0x03CE, 0x1005);
+    outw(0x03CE, 0x0E06);
 }
 
 unsigned char attribute_byte = 0x07;
@@ -561,6 +572,7 @@ void switch_text()
     outb(0x03C0, 0x20); 
     graphicsMode = TEXT;
     sti();
+    set_font();
     clear_screen();
     return;
 }
