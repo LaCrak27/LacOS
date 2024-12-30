@@ -1,11 +1,11 @@
+[bits 16]
 [org 0x7c00]
 KERNEL_OFFSET equ 0xFFF0 ; Where the kernel gets loaded (must end in 0)
-MAP_OFFSET equ 0x1000 ; Where the kernel gets loaded
+MAP_OFFSET equ 0x1000 ; Where to place detected memory map
 
     mov bp, 0xF000 ; Stack set-up
     mov sp, bp 
     mov ax, 0
-    mov ds, ax
     mov ds, ax
     mov ss, ax
     mov es, ax
@@ -37,10 +37,9 @@ a20_on:
 %include "boot/pm/switch_to_pm.asm"
 
 [bits 16]
-
-; looad kernel
+; load kernel
 load_kernel:
-    mov dl, 0 ; Drive selection
+    mov dl, 0 ; Drive selection, select main floppy
     call disk_load ; Will perform 2 load operations to load 100 sectors (7.5KB) into memory [ES:BX]
     ret
 

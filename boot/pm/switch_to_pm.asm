@@ -21,7 +21,7 @@ init_pm:
     mov fs, ax
     mov gs, ax
 
-    mov ebp, 0x90000 ; Update stack position, we do NOT care about EBDA, since it is not standard
+    mov ebp, 0x9FC00 ; Update stack position, we do NOT care about EBDA, since it is not standard
     mov esp, ebp
 
     call begin_pm

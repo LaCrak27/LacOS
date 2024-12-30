@@ -33,6 +33,7 @@ void get_font();
 void set_font();
 void set_fg(unsigned char fgVal);
 void set_bg(unsigned char bgVal);
+void refresh_attr();
 void set_attr_byte(unsigned char attrByte);
 void print_char(char character, int col, int row);
 void erase_char();

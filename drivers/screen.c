@@ -78,6 +78,15 @@ void set_attr_byte(unsigned char attrByte)
     attribute_byte = attrByte;
 }
 
+void refresh_attr()
+{
+    unsigned char *vidmem = (unsigned char *)TEXT_VIDEO_ADRESS;
+    unsigned short target = get_screen_offset(MAX_COLS, MAX_ROWS);
+    for (int i = 1; i <= target + 1; i += 2)
+    {
+        *(vidmem + i) = attribute_byte;
+    }
+}
 int lastOffset = 0;
 void disable_cursor()
 {
@@ -101,11 +110,6 @@ void erase_char()
 // Also sends to COM1
 void print_char(char character, int col, int row)
 {
-    if (graphicsMode == GRAPHICS)
-    {
-        write_serial('\r', COM1_PORT);
-        return;
-    }
     // Pointer that starts at the beggining of video memory
     unsigned char *vidmem = (unsigned char *)TEXT_VIDEO_ADRESS;
     int offset;
@@ -187,11 +191,17 @@ void set_cursor(int offset)
 
 void print_at(char *message, int col, int row)
 {
+    int i = 0;
+    if (graphicsMode == GRAPHICS)
+    {
+        while (message[i] != 0)
+            write_serial(message[i++], COM1_PORT);
+        return;
+    }
     if (col >= 0 && row >= 0)
     {
         set_cursor(get_screen_offset(col, row));
     }
-    int i = 0;
     while (message[i] != 0)
     {
         print_char(message[i++], col, row);
@@ -499,6 +509,7 @@ void switch_graphics()
     graphicsMode = GRAPHICS;
     sti();
     g_cls();
+    println("SWITCHED TO GRAPHICS MODE!! Serial now acts as debug console!!");
     return;
 }
 
@@ -531,6 +542,7 @@ void g_cls()
 // (mode 03h)
 void switch_text()
 {
+    println("SWITCHED TO TEXT MODE!! Serial now acts as main input and output!!");
     cli();
     // All registers are already explained in switch_graphics(), so I will not go into detail here
     outb(0x03C2, 0x67);

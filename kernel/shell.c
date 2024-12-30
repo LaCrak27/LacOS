@@ -193,6 +193,7 @@ int sh_setfg(int argc, char **argv)
         if (strcmp(argv[1], colors[i]))
         {
             set_fg(i);
+            refresh_attr();
             print("Foreground succesfully set to ");
             print(argv[1]);
             print("(");
@@ -218,6 +219,7 @@ int sh_setbg(int argc, char **argv)
         if (strcmp(argv[1], colors[i]))
         {
             set_bg(i);
+            refresh_attr();
             print("Background succesfully set to ");
             print(argv[1]);
             println(".");
