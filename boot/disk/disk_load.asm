@@ -22,7 +22,7 @@ load_loop:
     inc ch
     dec dx
     test dx, dx
-    je load_end
+    jz load_end
     jmp load_loop
 
 fd_load: ; Loads cylinder ch into 0x1500

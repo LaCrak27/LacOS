@@ -5,13 +5,11 @@ ASM_SOURCES = $(wildcard interrupts/*.asm)
 
 all: clean LacOS.img
 bochsdbg: clean LacOS.img
-	bochsdbg.exe -f debug.bxrc -q
-start: clean LacOS.img
-	qemu-system-x86_64.exe -fda LacOS.img -d guest_errors -serial stdio
+	bochs -f debug.bxrc -q
+start: LacOS.img
+	qemu-system-x86_64 -fda LacOS.img -d guest_errors -serial stdio
 headless: LacOS.img
-	qemu-system-x86_64.exe -fda LacOS.img -d guest_errors -nographic
-debug: LacOS.img
-	C:\Program Files\Oracle\VirtualBox\vboxmanage.exe startvm "LacOS" -E VBOX_GUI_DBG_AUTO_SHOW=true -E VBOX_GUI_DBG_ENABLED=true
+	qemu-system-x86_64 -fda LacOS.img -d guest_errors -nographic
 LacOS.iso: LacOS.img # This is a DOS, the ISO was experimental. A lot of things won't work.
 	mkisofs -pad -b LacOS.img -R -o LacOS.iso LacOS.img
 LacOS.img: LacOS.bin
@@ -22,7 +20,7 @@ LacOS.bin: kernel.bin boot_sect.bin
 boot_sect.bin: boot/boot_sect.asm
 	nasm boot/boot_sect.asm -f bin -o boot_sect.bin
 kernel.bin: ${OBJ} ${SOBJ} kernel/kernel_entry.o
-	ld -m elf_i386 -o $@ -Ttext 0x101F0 kernel/kernel_entry.o $^ --oformat binary
+	ld -m elf_i386 -T link.ld -o $@ kernel/kernel_entry.o $^
 clean:
 	find . -name *.o -delete
 	rm -rf *.bin *.img

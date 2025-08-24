@@ -1,6 +1,7 @@
 #ifndef COMP_DATE
 #define COMP_DATE "Unknown Date"
 #endif
+
 #include "../drivers/screen.h"
 #include "../drivers/serial.h"
 #include "../drivers/floppy.h"
@@ -13,11 +14,12 @@
 #include "../drivers/keyboard.h"
 #include "../util/debug.h"
 
-void main()
+void kmain()
 {
     init_serial(0, COM1_PORT);
     clear_screen();
     write_serial('\r', COM1_PORT);
+
     // ASCII Art
     println(" __         ______     ______");
     println("/\\ \\       /\\  __ \\   /\\  ___\\");
@@ -33,6 +35,7 @@ void main()
     println("(c) LaCrak27 2023-2024. No rights reserved.");
     print("Compiled at: ");
     println(COMP_DATE);
+
     print("Initializing IDT...          ");
     init_idt();
     set_fg(GREEN);
@@ -67,7 +70,7 @@ void main()
     }
     else
     {
-        except("Magic byte check failed, bootloader could not find out memory map.");
+        panic("Magic byte check failed, bootloader could not find out memory map.");
     }
     get_font();
     set_font();

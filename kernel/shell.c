@@ -89,7 +89,7 @@ char *read_line()
     char *lineContent = (char *)malloc(sizeof(char) * (MAX_COLS - 2)); // Allocate one line worth of data
     if (!lineContent)
     {
-        except("Error allocating line.");
+        panic("Error allocating line.");
     }
     memset(lineContent, 0, (MAX_COLS - 3) * sizeof(char)); // Clear buffer memory
     while (1)
@@ -308,7 +308,7 @@ int sh_fdump(int argc, char **argv)
     println("Reading from floppy, please wait...");
     unsigned char *fd = malloc(floppy_dmalen * sizeof(unsigned char));
     if (!fd)
-        except("Error allocating memory for dump.");
+        panic("Error allocating memory for dump.");
     flp_raw_read_cyl(cyl, fd);
     println("- - - - - - - - - - - - - - - CYLINDER DUMP - - - - - - - - - - - - - - -");
     println("C.ADDR  |  00  01  02  03  04  05  06  07  08  09  0A  0B  0C  0D  0E  0F");

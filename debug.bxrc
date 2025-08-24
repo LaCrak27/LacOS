@@ -1,7 +1,5 @@
-# Tell bochs to use our boot sector code as though it were
-# a floppy disk inserted into a computer at boot time .
-floppya: 1_44=LacOS.img, status = inserted
+floppya: 1_44=LacOS.img, status=inserted
 boot: a
 # Enable debugger and breakpoints
-display_library: win32, options="gui_debug" 
+display_library: sdl2, options="gui_debug" 
 magic_break: enabled=1

@@ -3,7 +3,6 @@
 
 unsigned long initmm();
 void *malloc(unsigned long blockLenghth);
-void except(char* msg);
 void free(void *ptr);
 void freearr_str(char **ptr);
 void *realloc(void *ptr, unsigned long blockLenght);

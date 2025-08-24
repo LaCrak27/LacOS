@@ -5,9 +5,15 @@
 #include "../interrupts/idt.h"
 #include "debug.h"
 
-void except(char *msg)
+void panic(char *msg)
 {
-    except_intern(msg);
+    panic_intern(msg);
+}
+
+// For the stack protector
+void __stack_chk_fail(void)
+{
+    panic_intern("Stack canary deleted!");
 }
 
 // Memory stuff
@@ -109,12 +115,12 @@ char **strsplt(char *str, char delim)
     char *buffer = malloc(i + 1 * sizeof(char)); // Buffer to hold current element
     if (!buffer)
     {
-        except("Error allocating buffer");
+        panic("Error allocating buffer");
     }
     char **res = (char **)malloc((elementCount + 1) * sizeof(char *)); // Array of strings to return
     if (!res)
     {
-        except("Error allocating res array");
+        panic("Error allocating res array");
     }
     res[elementCount] = NULL;
     int currentElement = 0; // Current element index
@@ -128,7 +134,7 @@ char **strsplt(char *str, char delim)
             res[currentElement] = (char *)malloc(sizeof(char) * (currentSize + 1));
             if (!res[currentElement])
             {
-                except("Error allocating element");
+                panic("Error allocating element");
             }
             memcpy(buffer, res[currentElement], currentSize); // Store segment
             res[currentElement][currentSize] = NULL;          // Add null terminator
@@ -148,7 +154,7 @@ char **strsplt(char *str, char delim)
     res[currentElement] = (char *)malloc(sizeof(char) * (currentSize + 1));
     if (!res[currentElement])
     {
-        except("Error allocating element");
+        panic("Error allocating element");
     }
     memcpy(buffer, res[currentElement], currentSize); // Store segment
     res[currentElement][currentSize] = NULL;          // Add null terminator

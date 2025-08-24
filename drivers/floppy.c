@@ -6,7 +6,7 @@
 #include "timer.h"
 #include "../util/debug.h"
 
-void floppy_irq_handler();
+void floppy_irq_handler(InterruptRegisters *r);
 void wait_irq();
 void floppy_write_cmd(int cmd);
 unsigned char floppy_read_data();
@@ -42,7 +42,7 @@ static char *drive_types[8] = {
     "unknown type"};
 
 char irqReceived = FALSE;
-void floppy_irq_handler()
+void floppy_irq_handler(InterruptRegisters *r)
 {
     irqReceived = TRUE;
 }
@@ -125,7 +125,7 @@ void floppy_write_cmd(int cmd)
         }
     }
     // Handle the command failing
-    except_intern("Floppy command failed (wut da hellll)");
+    panic_intern("Floppy command failed (wut da hellll)");
 }
 
 unsigned char floppy_read_data()
@@ -141,15 +141,15 @@ unsigned char floppy_read_data()
         }
     }
     // Handle read failed
-    except_intern("Floppy read failed!!!");
+    panic_intern("Floppy read failed!!!");
     return 0; // not reached
 }
 
 void floppy_check_interrupt(int *st0, int *cyl)
 {
     floppy_write_cmd(SENSE_INTERRUPT);
-    *st0 = floppy_read_data(STATUS_REGISTER_A);
-    *cyl = floppy_read_data(STATUS_REGISTER_A);
+    *st0 = floppy_read_data();
+    *cyl = floppy_read_data();
 }
 
 void floppy_configure()
@@ -187,7 +187,7 @@ int floppy_calibrate()
         }
     }
     floppy_motor(floppy_motor_off);
-    except_intern("Floppy unable to calibrate");
+    panic_intern("Floppy unable to calibrate");
     return -1;
 }
 
@@ -268,7 +268,7 @@ int floppy_seek(unsigned cyli, int head)
         }
     }
     floppy_motor(floppy_motor_off);
-    except_intern("Floppy seek error");
+    panic_intern("Floppy seek error");
     return -1;
 }
 
@@ -288,7 +288,7 @@ static int floppy_dma_init(int dir)
     // check that if we add count and address we don't get a carry
     if ((a.l >> 24) || (c.l >> 16) || (((a.l & 0xffff) + c.l) >> 16))
     {
-        except_intern("Buffer not suitable");
+        panic("Buffer not suitable");
     }
 
     unsigned char mode;

@@ -145,7 +145,7 @@ void isr_handler(InterruptRegisters *regs)
     }
 }
 
-void except_intern(char* errorMessage)
+void panic_intern(char* errorMessage)
 {
     syshalt(errorMessage, NULL);
 }
@@ -155,7 +155,7 @@ void syshalt(char *errorMessage, InterruptRegisters *regs)
     set_fg(WHITE);
     set_bg(BLUE);
     clear_screen();
-    println("SYSTEM HALTED!!! Error:");
+    println("Kernel has panicked!!! Error message:");
     println(errorMessage);
     if(regs)
     {

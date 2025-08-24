@@ -31,7 +31,7 @@ void set_idt_gate(unsigned char num, unsigned long base, unsigned short sel, uns
 void isr_handler(InterruptRegisters* regs);
 void irq_install_handler(int irq, void (*handler)(InterruptRegisters *r));
 void irq_uninstall_handler(int irq);
-void except_intern(char* errorMessage);
+void panic_intern(char* errorMessage);
 
 extern void isr0();
 extern void isr1();
