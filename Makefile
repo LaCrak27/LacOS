@@ -4,23 +4,30 @@ SOBJ = ${ASM_SOURCES:.asm=.o}
 ASM_SOURCES = $(wildcard interrupts/*.asm)
 
 all: clean LacOS.img
+
 bochsdbg: clean LacOS.img
 	bochs -f debug.bxrc -q
+
 start: LacOS.img
 	qemu-system-x86_64 -fda LacOS.img -d guest_errors -serial stdio
+
 headless: LacOS.img
 	qemu-system-x86_64 -fda LacOS.img -d guest_errors -nographic
+
 LacOS.iso: LacOS.img # This is a DOS, the ISO was experimental. A lot of things won't work.
 	mkisofs -pad -b LacOS.img -R -o LacOS.iso LacOS.img
+
 LacOS.img: LacOS.bin
 	dd if=/dev/zero of=LacOS.img bs=512 count=2880
 	dd if=LacOS.bin of=LacOS.img conv=notrunc
+
 LacOS.bin: kernel.bin boot_sect.bin
 	cat boot_sect.bin kernel.bin > LacOS.bin
 boot_sect.bin: boot/boot_sect.asm
 	nasm boot/boot_sect.asm -f bin -o boot_sect.bin
 kernel.bin: ${OBJ} ${SOBJ} kernel/kernel_entry.o
 	ld -m elf_i386 -T link.ld -o $@ kernel/kernel_entry.o $^
+
 clean:
 	find . -name *.o -delete
 	rm -rf *.bin *.img

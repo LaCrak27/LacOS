@@ -5,6 +5,7 @@
 #include "../interrupts/idt.h"
 #include "timer.h"
 #include "../util/debug.h"
+#include "../util/memory.h"
 
 void floppy_irq_handler(InterruptRegisters *r);
 void wait_irq();
@@ -22,7 +23,7 @@ int floppy_write_track(unsigned cyl);
 void floppy_motor_kill();
 
 // DMA buffer
-static unsigned char floppy_dmabuf[floppy_dmalen]__attribute__((aligned(0x8000)));
+static unsigned char *floppy_dmabuf = NULL;
 
 static char floppy_available = 0;
 char flp_avail()
@@ -58,6 +59,7 @@ void wait_irq()
 int init_floppy()
 {
     irq_install_handler(6, &floppy_irq_handler);
+    floppy_dmabuf = malloc(floppy_dmalen);
     outb(0x70, 0x10);
     unsigned drives = inb(0x71);
     print(" - Drive type: ");
@@ -85,28 +87,6 @@ int init_floppy()
         return 2;
     }
     println("Floppy 0 configured correctly!");
-    /*println("Validating floppy access (reading cyl 0)...");
-    floppy_read_track(0);
-    // This is hardcoded here but in the actual driver code to read and write it'll be inside a function.
-    memcpy(floppy_dmabuf, floppy_buffer, floppy_dmalen); // Copy to floppy buffer
-    if(floppy_dmabuf[0x1FF] != 0xAA)
-    {
-        println("Floppy validation failed. Dumping read boot sector in 1s:");
-        sleep(1000);
-        for(int i = 0; i < 0x20; i++)
-        {
-            print(uitoh(i*16));
-            print("  ");
-            for(int j = 0; j < 16; j++)
-            {
-                print(uctoh(floppy_dmabuf[i*16 + j]));
-                printc(' ');
-            }
-            printc('\n');
-            sleep(10);
-        }
-        return 3;
-    }*/
     floppy_available = 1;
     return 0;
 }

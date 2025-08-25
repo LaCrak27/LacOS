@@ -51,6 +51,14 @@ void kmain()
     set_fg(GREEN);
     println("Done!");
     set_fg(GRAY);
+     if (*(char *)0x1000 == 0x69) // Check if memory detection was succesful
+    {
+        initmm();
+    }
+    else
+    {
+        panic("Magic byte check failed, bootloader could not find out memory map.");
+    }
     println("Initializing floppy...       ");
     if (!init_floppy())
     {
@@ -63,14 +71,6 @@ void kmain()
         set_fg(RED);
         println("Floppy initialization failed!");
         set_fg(GRAY);
-    }
-    if (*(char *)0x1000 == 0x69) // Check if memory detection was succesful
-    {
-        initmm();
-    }
-    else
-    {
-        panic("Magic byte check failed, bootloader could not find out memory map.");
     }
     get_font();
     set_font();
