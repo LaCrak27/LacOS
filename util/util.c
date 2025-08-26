@@ -39,6 +39,16 @@ void memset(void *dest, char val, unsigned long n)
 
 // Str utils
 
+// Adds str2 at the end of str1.
+// Make sure that the str1 has enough allocated space to hold all of str2 (incuding the null terminator!).
+void strcat(char *str1, char *str2)
+{
+    int str1len = strlen(str1);
+    int str2len = strlen(str2);
+    memcpy(str2, str1 + str1len, str2len);
+    str1[str1len + str2len] = 0;
+}
+
 // Gets length of null terminated string.
 int strlen(char *str)
 {
@@ -363,12 +373,45 @@ void reboot()
     }
 }
 
+// Undefined behavior san
+struct source_location
+{
+    char *file;
+    unsigned long line;
+    unsigned long column;
+};
+
+struct type_descriptor
+{
+    unsigned short kind;
+    unsigned short info;
+    char name[];
+};
+
+struct type_mismatch_info
+{
+    struct source_location location;
+    struct type_descriptor *type;
+    unsigned int *alignment;
+    unsigned char type_check_kind;
+};
+
+void __ubsan_handle_type_mismatch_v1(struct type_mismatch_info *type_mismatch, unsigned int *pointer)
+{
+    char msg[100] = "Undefined behavior detected in file ";
+    strcat(msg, type_mismatch->location.file);
+    strcat(msg, ", line ");
+    strcat(msg, uitoa(type_mismatch->location.line));
+    strcat(msg, ".");
+    panic(msg);
+}
+
 // Soft reboots the machine, not actually turning it off
 void reset()
 {
     asm(
-    "mov ebp, 0x90000\n"
-    "mov esp, ebp\n"    // Clear stack
-    "jmp 0x101F0"       // Jump to main
+        "mov ebp, 0x90000\n"
+        "mov esp, ebp\n" // Clear stack
+        "jmp 0x101F0"    // Jump to kmain
     );
 }

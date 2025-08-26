@@ -23,7 +23,7 @@ int floppy_write_track(unsigned cyl);
 void floppy_motor_kill();
 
 // DMA buffer
-static unsigned char *floppy_dmabuf = NULL;
+static unsigned char floppy_dmabuf[floppy_dmalen]__attribute__((aligned(0x8000)));
 
 static char floppy_available = 0;
 char flp_avail()
@@ -59,7 +59,6 @@ void wait_irq()
 int init_floppy()
 {
     irq_install_handler(6, &floppy_irq_handler);
-    floppy_dmabuf = malloc(floppy_dmalen);
     outb(0x70, 0x10);
     unsigned drives = inb(0x71);
     print(" - Drive type: ");
@@ -105,7 +104,7 @@ void floppy_write_cmd(int cmd)
         }
     }
     // Handle the command failing
-    panic_intern("Floppy command failed (wut da hellll)");
+    panic("Floppy command failed (wut da hellll)");
 }
 
 unsigned char floppy_read_data()
@@ -121,7 +120,7 @@ unsigned char floppy_read_data()
         }
     }
     // Handle read failed
-    panic_intern("Floppy read failed!!!");
+    panic("Floppy read failed!!!");
     return 0; // not reached
 }
 
@@ -167,7 +166,7 @@ int floppy_calibrate()
         }
     }
     floppy_motor(floppy_motor_off);
-    panic_intern("Floppy unable to calibrate");
+    panic("Floppy unable to calibrate");
     return -1;
 }
 
@@ -248,7 +247,7 @@ int floppy_seek(unsigned cyli, int head)
         }
     }
     floppy_motor(floppy_motor_off);
-    panic_intern("Floppy seek error");
+    panic("Floppy seek error");
     return -1;
 }
 
@@ -336,7 +335,7 @@ int floppy_do_track(unsigned cyl, int dir)
     {
         // init dma..
         floppy_dma_init(dir);
-
+        
         sleep(100); // give some time (100ms) to settle after the seeks
         irqReceived = FALSE; // Get ready to get interrupt
         floppy_write_cmd(cmd);  // set above for current direction
@@ -348,7 +347,7 @@ int floppy_do_track(unsigned cyl, int dir)
         floppy_write_cmd(18);   // number of tracks to operate on
         floppy_write_cmd(0x1b); // GAP3 length, 27 is default for 3.5"
         floppy_write_cmd(0xff); // data length (0xff if B/S != 0)
-        
+
         wait_irq();
 
         // first read status information
@@ -430,7 +429,6 @@ int floppy_write_track(unsigned cyl)
 // Buffer MUST be of size floppy_dmalen.
 int flp_raw_read_cyl(unsigned cyl, unsigned char *buffer)
 {
-
     if(floppy_read_track(cyl))
     {
         return 1;

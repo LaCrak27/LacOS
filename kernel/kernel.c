@@ -32,7 +32,7 @@ void kmain()
     println("\\ \\ \\_\\ \\  \\ \\___  \\");
     println(" \\ \\_____\\  \\/\\_____\\");
     println("  \\/_____/   \\/_____/");
-    println("(c) LaCrak27 2023-2024. No rights reserved.");
+    println("(c) LaCrak27 2023-2025. No rights reserved.");
     print("Compiled at: ");
     println(COMP_DATE);
 

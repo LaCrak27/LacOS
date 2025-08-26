@@ -5,11 +5,14 @@ ASM_SOURCES = $(wildcard interrupts/*.asm)
 
 all: clean LacOS.img
 
-bochsdbg: clean LacOS.img
-	bochs -f debug.bxrc -q
+bochsdbg: LacOS.img
+	bochs -dbg_gui -f debug.bxrc -q 
 
 start: LacOS.img
-	qemu-system-x86_64 -fda LacOS.img -d guest_errors -serial stdio
+	qemu-system-x86_64 -fda LacOS.img -serial stdio
+
+debug: LacOS.img
+	qemu-system-x86_64 -fda LacOS.img -d invalid_mem,guest_errors,cpu_reset
 
 headless: LacOS.img
 	qemu-system-x86_64 -fda LacOS.img -d guest_errors -nographic
@@ -33,7 +36,7 @@ clean:
 	rm -rf *.bin *.img
 
 %.o: %.c
-	gcc -masm=intel -D COMP_DATE='"$(shell date)"' -mno-mmx -mno-sse -mno-sse2 -fno-pie -ffreestanding -m32 -c $< -o $@
+	gcc -masm=intel -D COMP_DATE='"$(shell date)"' -g -fsanitize=null -mno-mmx -mno-sse -mno-sse2 -fno-pie -ffreestanding -m32 -c $< -o $@
 
 kernel/kernel_entry.o: kernel/kernel_entry.asm
 	nasm $< -f elf -o $@

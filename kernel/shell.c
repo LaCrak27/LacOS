@@ -306,9 +306,10 @@ int sh_fdump(int argc, char **argv)
         return 1;
     }
     println("Reading from floppy, please wait...");
-    unsigned char *fd = malloc(floppy_dmalen * sizeof(unsigned char));
+    unsigned char *fd = malloc(floppy_dmalen);
     if (!fd)
         panic("Error allocating memory for dump.");
+
     flp_raw_read_cyl(cyl, fd);
     println("- - - - - - - - - - - - - - - CYLINDER DUMP - - - - - - - - - - - - - - -");
     println("C.ADDR  |  00  01  02  03  04  05  06  07  08  09  0A  0B  0C  0D  0E  0F");
@@ -407,8 +408,8 @@ int sh_bdpl(int argc, char **argv)
     println("BDPL Player for LacOS 1.0");
     println("(c) LaCrak27");
     set_fg(GRAY);
-    int size = atoi(argv[1]);
-    if (size == -1)
+
+    if (argc != 2 || atoi(argv[1]) == -1)
     {
         set_fg(RED);
         println("Incorrect input. Correct usage: ");
@@ -416,6 +417,8 @@ int sh_bdpl(int argc, char **argv)
         set_fg(GRAY);
         return 1;
     }
+
+    unsigned long size = atoi(argv[1]);
     // Buffer with actual data.
     unsigned char *buffer = (char *)malloc(size + 5);
     // Buffer from floppy read.

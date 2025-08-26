@@ -202,7 +202,7 @@ void print_at(char *message, int col, int row)
     {
         set_cursor(get_screen_offset(col, row));
     }
-    while (message[i] != 0)
+    while (message[i])
     {
         print_char(message[i++], col, row);
     }
