@@ -7,11 +7,16 @@ SOBJ = ${ASM_SOURCES:.asm=.o}
 ASM_SOURCES = $(wildcard interrupts/*.asm)
 
 ifeq ($(findstring with-com1-shell, $(args)), with-com1-shell)
-		C_FLAGS += "-D COM1_SHELL"
-		COM1_SHELL_ENABLED = true
+	C_FLAGS += "-D COM1_SHELL"
+	COM1_SHELL_ENABLED = true
 else
-		COM1_SHELL_ENABLED = false
+	COM1_SHELL_ENABLED = false
 endif
+
+ifneq ($(findstring Linux,  $(shell uname -s)), Linux)
+$(error Building LacOS is only supported on Linux!!) 
+endif
+
 
 all: LacOS.img
 
