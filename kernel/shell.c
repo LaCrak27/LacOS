@@ -62,11 +62,10 @@ int (*builtin_func[])(int, char **) = {
     &sh_crash};
 
 char lastLine[MAX_COLS - 2] = {0};
+char *line;
+char **args;
 void init_shell()
 {
-    println("Shell started correctly!");
-    char *line;
-    char **args;
     while (1)
     {
         line = read_line();
@@ -80,6 +79,10 @@ void init_shell()
         free(line);
         freearr_str(args);
     }
+}
+
+void exit_program()
+{
 }
 
 char *read_line()

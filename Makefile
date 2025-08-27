@@ -1,45 +1,73 @@
+.PHONY: clean, all, pre_build, LacOS.img
 C_SOURCES = $(wildcard kernel/*.c drivers/*.c interrupts/*.c util/*.c)
+C_FLAGS = -masm=intel -D COMP_DATE='"$(shell date)"' -g -fsanitize=null -mno-mmx -mno-sse -mno-sse2 -fno-pie -ffreestanding -m32
+args = `arg="$(filter-out $@,$(MAKECMDGOALS))" && echo $${arg:-${1}}`
 OBJ = ${C_SOURCES:.c=.o}
 SOBJ = ${ASM_SOURCES:.asm=.o}
 ASM_SOURCES = $(wildcard interrupts/*.asm)
 
-all: clean LacOS.img
+ifeq ($(findstring with-com1-shell, $(args)), with-com1-shell)
+		C_FLAGS += "-D COM1_SHELL"
+		COM1_SHELL_ENABLED = true
+else
+		COM1_SHELL_ENABLED = false
+endif
+
+all: LacOS.img
+
+pre_build: clean 
+	@echo "Building LacOS..."
+	@echo "Extras:"
+	@echo "	- COM1 Shell support: $(COM1_SHELL_ENABLED)"
+	@echo "Compiling C files..."
+
+print_compiling_asm:
+	@echo "Compiling assembly files..."
 
 bochsdbg: LacOS.img
-	bochs -dbg_gui -f debug.bxrc -q 
+	@echo "Launching bochs debugger..." 
+	@bochs -dbg_gui -f debug.bxrc -q 
 
 start: LacOS.img
-	qemu-system-x86_64 -fda LacOS.img -serial stdio
+	@echo "Launching qemu..." 
+	@qemu-system-x86_64 -fda LacOS.img -serial stdio
 
 debug: LacOS.img
-	qemu-system-x86_64 -fda LacOS.img -d invalid_mem,guest_errors,cpu_reset
+	@echo "Launching qemu with debug logging" 
+	@qemu-system-x86_64 -fda LacOS.img -d invalid_mem,guest_errors,cpu_reset
 
 headless: LacOS.img
-	qemu-system-x86_64 -fda LacOS.img -d guest_errors -nographic
+	@echo "Launching headlessly" 
+	@qemu-system-x86_64 -fda LacOS.img -d guest_errors -nographic
 
 LacOS.iso: LacOS.img # This is a DOS, the ISO was experimental. A lot of things won't work.
 	mkisofs -pad -b LacOS.img -R -o LacOS.iso LacOS.img
 
 LacOS.img: LacOS.bin
-	dd if=/dev/zero of=LacOS.img bs=512 count=2880
-	dd if=LacOS.bin of=LacOS.img conv=notrunc
+	@echo "Creating floppy drive image..." 
+	@dd if=/dev/zero of=LacOS.img bs=512 count=2880 > /dev/null
+	@dd if=LacOS.bin of=LacOS.img conv=notrunc > /dev/null
 
-LacOS.bin: kernel.bin boot_sect.bin
-	cat boot_sect.bin kernel.bin > LacOS.bin
+LacOS.bin: kernel.bin boot_sect.bin	
+	@echo "Done!"
+	@cat boot_sect.bin kernel.bin > LacOS.bin
 boot_sect.bin: boot/boot_sect.asm
-	nasm boot/boot_sect.asm -f bin -o boot_sect.bin
-kernel.bin: ${OBJ} ${SOBJ} kernel/kernel_entry.o
-	ld -m elf_i386 -T link.ld -o $@ kernel/kernel_entry.o $^
+	@nasm boot/boot_sect.asm -f bin -o boot_sect.bin
+
+kernel.bin: pre_build ${OBJ} print_compiling_asm ${SOBJ} kernel/kernel_entry.o
+	@echo "Linking..."
+	@ld -m elf_i386 -T link.ld -o $@ kernel/kernel_entry.o $(filter %.o,$^)
 
 clean:
-	find . -name *.o -delete
-	rm -rf *.bin *.img
+	@echo "Cleaning enviroment..."
+	@find . -name *.o -delete
+	@rm -rf *.bin *.img
 
 %.o: %.c
-	gcc -masm=intel -D COMP_DATE='"$(shell date)"' -g -fsanitize=null -mno-mmx -mno-sse -mno-sse2 -fno-pie -ffreestanding -m32 -c $< -o $@
+	@gcc $(C_FLAGS) -c $< -o $@
 
 kernel/kernel_entry.o: kernel/kernel_entry.asm
-	nasm $< -f elf -o $@
+	@nasm $< -f elf -o $@
 
 %.o: %.asm
-	nasm $< -f elf -o $@
+	@nasm $< -f elf -o $@

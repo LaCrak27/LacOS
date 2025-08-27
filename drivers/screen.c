@@ -8,19 +8,19 @@
 char graphicsMode = TEXT;
 unsigned char *font; // 4096 bytes
 
-// Gets the copy of the charset stored in VGA RAM. 
+// Gets the copy of the charset stored in VGA RAM.
 // MUST BE CALLED FROM TEXT MODE OR BAD THINGS WILL HAPPEN.
 void get_font()
 {
     font = (unsigned char *)malloc(4096);
-    outw(0x03CE, 0x0005); // Clear Odd/Even Mode in graphics controller.
-    outw(0x03CE, 0x0406); // Map memory to 0xA0000 (64K)
-    outw(0x03CE, 0x0204); // Select map (plane) 2 (font)
-    outw(0x03C4, 0x0402); // Select map (plane) 2 (font) (again)
-    outw(0x03C4, 0x0604); // Clear Odd/Even Mode in sequencer. (VGA moment)
+    outw(0x03CE, 0x0005);                          // Clear Odd/Even Mode in graphics controller.
+    outw(0x03CE, 0x0406);                          // Map memory to 0xA0000 (64K)
+    outw(0x03CE, 0x0204);                          // Select map (plane) 2 (font)
+    outw(0x03C4, 0x0402);                          // Select map (plane) 2 (font) (again)
+    outw(0x03C4, 0x0604);                          // Clear Odd/Even Mode in sequencer. (VGA moment)
     unsigned char *src = (unsigned char *)0xA0000; // Points to the beginning of the plane
-    unsigned char *dest = font; // Points to whatever block we allocated
-    for(int i = 0; i < 256; i++)
+    unsigned char *dest = font;                    // Points to whatever block we allocated
+    for (int i = 0; i < 256; i++)
     {
         memcpy(src, dest, 16); // Copy 16 bytes of memory
         dest += 16;
@@ -38,17 +38,17 @@ void get_font()
 // MUST BE CALLED FROM TEXT MODE OR BAD THINGS WILL HAPPEN.
 void set_font()
 {
-    outw(0x03CE, 0x0005); // Clear Odd/Even Mode in graphics controller.
-    outw(0x03CE, 0x0406); // Map memory to 0xA0000 (64K)
-    outw(0x03CE, 0x0204); // Select map (plane) 2 (font)
-    outw(0x03C4, 0x0402); // Select map (plane) 2 (font) (again)
-    outw(0x03C4, 0x0604); // Clear Odd/Even Mode in sequencer. (VGA moment)
+    outw(0x03CE, 0x0005);                           // Clear Odd/Even Mode in graphics controller.
+    outw(0x03CE, 0x0406);                           // Map memory to 0xA0000 (64K)
+    outw(0x03CE, 0x0204);                           // Select map (plane) 2 (font)
+    outw(0x03C4, 0x0402);                           // Select map (plane) 2 (font) (again)
+    outw(0x03C4, 0x0604);                           // Clear Odd/Even Mode in sequencer. (VGA moment)
     unsigned char *dest = (unsigned char *)0xA0000; // Points to the beginning of the plane
-    unsigned char *src = font; // Points to whatever block we allocated
-    for(int i = 0; i < 256; i++)
+    unsigned char *src = font;                      // Points to whatever block we allocated
+    for (int i = 0; i < 256; i++)
     {
         memcpy(src, dest, 16); // Copy 16 bytes of memory
-        dest += 32; // Skip 16 bytes
+        dest += 32;            // Skip 16 bytes
         src += 16;
     }
     // Return card to normal operation:
@@ -103,6 +103,11 @@ void erase_char()
     offset -= 2;
     vidmem[offset] = ' ';
     vidmem[offset + 1] = attribute_byte;
+#ifdef COM1_SHELL
+    write_serial('\b', COM1_PORT);
+    write_serial(' ', COM1_PORT);
+    write_serial('\b', COM1_PORT);
+#endif
     set_cursor(offset);
 }
 
@@ -127,9 +132,11 @@ void print_char(char character, int col, int row)
         vidmem[offset] = ' ';
         vidmem[offset + 1] = attribute_byte;
         set_cursor(offset);
+#ifdef COM1_SHELL
         write_serial('\b', COM1_PORT);
         write_serial(' ', COM1_PORT);
         write_serial('\b', COM1_PORT);
+#endif
         return;
     }
     if (character == '\n')
@@ -138,14 +145,18 @@ void print_char(char character, int col, int row)
         offset = get_screen_offset(79, rows);
         // Serial only returns by itself when you press the enter key
         // so we need to make this so that it also does it when programs want newlines
+#ifdef COM1_SHELL
         write_serial('\r', COM1_PORT);
+#endif
     }
     else
     {
         vidmem[offset] = character;
         vidmem[offset + 1] = attribute_byte;
     }
+#ifdef COM1_SHELL
     write_serial(character, COM1_PORT);
+#endif
     // Update offset
     offset += 2;
     offset = handle_scrolling(offset);
@@ -236,7 +247,9 @@ void clear_screen()
         }
     }
     set_cursor(get_screen_offset(0, 0));
+#ifdef COM1_SHELL
     write_serial('\r', COM1_PORT);
+#endif
 }
 
 int handle_scrolling(int cursor_offset)
@@ -486,7 +499,7 @@ void switch_graphics()
     //// Set palette (same as text mode, 16 colors):
     for (int i = 0; i < 15; i++)
     {
-        unsigned char base = 16*i;
+        unsigned char base = 16 * i;
         g_set_color(base + BLACK, 0, 0, 0);
         g_set_color(base + BLUE, 0, 0, 168);
         g_set_color(base + GREEN, 0, 168, 0);
@@ -509,7 +522,9 @@ void switch_graphics()
     graphicsMode = GRAPHICS;
     sti();
     g_cls();
+#ifdef COM1_SHELL
     println("SWITCHED TO GRAPHICS MODE!! Serial now acts as debug console!!");
+#endif
     return;
 }
 
@@ -542,7 +557,9 @@ void g_cls()
 // (mode 03h)
 void switch_text()
 {
+#ifdef COM1_SHELL
     println("SWITCHED TO TEXT MODE!! Serial now acts as main input and output!!");
+#endif
     cli();
     // All registers are already explained in switch_graphics(), so I will not go into detail here
     outb(0x03C2, 0x67);
@@ -576,13 +593,13 @@ void switch_text()
     outw(0x03CE, 0x1005);
     outw(0x03CE, 0x0E06);
 
-    inb(0x03DA);        
-    outb(0x03C0, 0x30); 
-    outb(0x03C0, 0x0C); 
-    outb(0x03C0, 0x33); 
-    outb(0x03C0, 0x08); 
+    inb(0x03DA);
+    outb(0x03C0, 0x30);
+    outb(0x03C0, 0x0C);
+    outb(0x03C0, 0x33);
+    outb(0x03C0, 0x08);
 
-    outb(0x03C0, 0x20); 
+    outb(0x03C0, 0x20);
     graphicsMode = TEXT;
     sti();
     set_font();
