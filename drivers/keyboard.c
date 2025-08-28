@@ -39,6 +39,7 @@ unsigned long read_key()
     resKey = 0;
     while (waitingForKey)
     {
+#ifdef COM1_SHELL
         if (serial_available())
         {
             if (inb(COM1_PORT + 5) & 1)
@@ -60,6 +61,7 @@ unsigned long read_key()
                 return r;
             }
         }
+#endif
     }
     return resKey;
 }

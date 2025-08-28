@@ -464,11 +464,11 @@ int sh_bdpl(int argc, char **argv)
         size -= floppy_dmalen;
         if (size >= 0)
         {
-            memcpy(fbuffer, buffer + position, floppy_dmalen);
+            memcpy(buffer + position, fbuffer, floppy_dmalen);
         }
         else
         {
-            memcpy(fbuffer, buffer + position, floppy_dmalen + size);
+            memcpy(buffer + position, fbuffer, floppy_dmalen + size);
         }
         position += floppy_dmalen;
         cylToRead++;

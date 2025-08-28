@@ -12,7 +12,7 @@
 #define UINT_MAX 4294967295
 #define size(x) (sizeof(x)/sizeof(x[0]))
 void panic(char *msg);
-void memcpy(char *source, char *dest, int n);
+void memcpy(char *dest, char *source, int n);
 int strlen(char* str);
 int strcmp(char *str1, char *str2);
 void strcpy(char *source, char *dest);

@@ -180,7 +180,7 @@ void *realloc(void *ptr, unsigned long block_lenght)
     void *newptr = malloc(block_lenght);
     if (newptr != NULL) // Only free memory
     {
-        memcpy(ptr, newptr, block_lenght); // Copy contents
+        memcpy(newptr, ptr, block_lenght); // Copy contents
         free(ptr);
     }
     return newptr;

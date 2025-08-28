@@ -45,7 +45,7 @@ void strcat(char *str1, char *str2)
 {
     int str1len = strlen(str1);
     int str2len = strlen(str2);
-    memcpy(str2, str1 + str1len, str2len);
+    memcpy(str1 + str1len, str2, str2len);
     str1[str1len + str2len] = 0;
 }
 
@@ -69,7 +69,7 @@ void trim(char *str, char trim)
     {
         i++;
     }
-    memcpy(str + i, str, len - i + 1); // Remove leading characters by shifting the whole string
+    memcpy(str, str + i, len - i + 1); // Remove leading characters by shifting the whole string
     i = len - i - 1;                   // Make i point to last char
     while (str[i] == trim)             // Remove trailing chars
     {
@@ -122,7 +122,7 @@ char **strsplt(char *str, char delim)
         }
         i++;
     }
-    char *buffer = malloc(i + 1 * sizeof(char)); // Buffer to hold current element
+    char *buffer = malloc(i + 1); // Buffer to hold current element
     if (!buffer)
     {
         panic("Error allocating buffer");
@@ -146,7 +146,7 @@ char **strsplt(char *str, char delim)
             {
                 panic("Error allocating element");
             }
-            memcpy(buffer, res[currentElement], currentSize); // Store segment
+            memcpy(res[currentElement], buffer, currentSize); // Store segment
             res[currentElement][currentSize] = NULL;          // Add null terminator
             currentElement++;
             currentSize = 0;
@@ -166,7 +166,7 @@ char **strsplt(char *str, char delim)
     {
         panic("Error allocating element");
     }
-    memcpy(buffer, res[currentElement], currentSize); // Store segment
+    memcpy(res[currentElement], buffer, currentSize); // Store segment
     res[currentElement][currentSize] = NULL;          // Add null terminator
     free(buffer);
     return res;
