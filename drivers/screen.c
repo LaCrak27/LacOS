@@ -22,7 +22,7 @@ void get_font()
     unsigned char *dest = font;                    // Points to whatever block we allocated
     for (int i = 0; i < 256; i++)
     {
-        memcpy(src, dest, 16); // Copy 16 bytes of memory
+        memcpy(dest, src, 16); // Copy 16 bytes of memory
         dest += 16;
         src += 32; // Skip 16 bytes
     }
@@ -47,7 +47,7 @@ void set_font()
     unsigned char *src = font;                      // Points to whatever block we allocated
     for (int i = 0; i < 256; i++)
     {
-        memcpy(src, dest, 16); // Copy 16 bytes of memory
+        memcpy(dest, src, 16); // Copy 16 bytes of memory
         dest += 32;            // Skip 16 bytes
         src += 16;
     }

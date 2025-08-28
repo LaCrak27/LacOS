@@ -19,7 +19,7 @@ void __stack_chk_fail(void)
 // Memory stuff
 
 // Copies n bytes from source to dest.
-void memcpy(char *source, char *dest, int n)
+void memcpy(char *dest, char *source, int n)
 {
     for (; n != 0; n--)
     {

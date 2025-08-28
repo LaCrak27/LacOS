@@ -433,6 +433,6 @@ int flp_raw_read_cyl(unsigned cyl, unsigned char *buffer)
     {
         return 1;
     }
-    memcpy(floppy_dmabuf, buffer, floppy_dmalen);
+    memcpy(buffer, floppy_dmabuf, floppy_dmalen);
     return 0;
 }
