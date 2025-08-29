@@ -83,8 +83,9 @@ void *malloc(unsigned long blockLength)
     {
         if (blockPointer->magicNumber != 0x69)
         {
-            panic("Malloc blockpointer pointed to invalid block.");
+            panic("malloc() detected heap corruption.");
         }
+        
         // The block is free, big enough and there is a next block
         if (blockPointer->isBlockFree == 1 && blockPointer->blockSize > blockLength + sizeof(MemoryBlockHeader) && blockPointer->nextBlockAdress != 0)
         {
@@ -140,7 +141,7 @@ void free(void *ptr)
     MemoryBlockHeader *blockPtr = get_block(ptr); // Get pointer to header instead of content
 
     if (blockPtr->magicNumber != 0x69)
-        panic("Free called on an invalid adress.");
+        panic("free() called on an invalid adress.");
     if (blockPtr->isBlockFree == 0)
     {
         blockPtr->isBlockFree = 1;

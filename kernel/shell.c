@@ -313,7 +313,7 @@ int sh_fdump(int argc, char **argv)
     if (!fd)
         panic("Error allocating memory for dump.");
 
-    flp_raw_read_cyl(cyl, fd);
+    flp_read_cyl(cyl, fd);
     println("- - - - - - - - - - - - - - - CYLINDER DUMP - - - - - - - - - - - - - - -");
     println("C.ADDR  |  00  01  02  03  04  05  06  07  08  09  0A  0B  0C  0D  0E  0F");
     println("-------------------------------------------------------------------------");
@@ -457,19 +457,22 @@ int sh_bdpl(int argc, char **argv)
         print("Reading cylinder: ");
         println(itoa(cylToRead));
         println("------------");
-        while (flp_raw_read_cyl(cylToRead, fbuffer))
+        while (flp_read_cyl(cylToRead, fbuffer))
         {
             println("Retrying read...");
         }
-        size -= floppy_dmalen;
-        if (size >= 0)
+
+        if (size < floppy_dmalen)
         {
-            memcpy(buffer + position, fbuffer, floppy_dmalen);
+            memcpy(buffer + position, fbuffer, size);
+            size = 0;
         }
         else
         {
-            memcpy(buffer + position, fbuffer, floppy_dmalen + size);
+            memcpy(buffer + position, fbuffer, floppy_dmalen);
+            size -= floppy_dmalen;
         }
+
         position += floppy_dmalen;
         cylToRead++;
     }

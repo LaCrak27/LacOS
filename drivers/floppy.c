@@ -411,7 +411,7 @@ int floppy_do_track(unsigned cyl, int dir)
         }
     }
     floppy_motor(floppy_motor_off);
-    return 0xFF;
+    return error;
 }
 
 int floppy_read_track(unsigned cyl) 
@@ -425,9 +425,8 @@ int floppy_write_track(unsigned cyl)
     return floppy_do_track(cyl, floppy_dir_write);
 }
 
-// Warning: Always read directly from floppy and doesn't update cache. Should only be used for debugging purposes.
-// Buffer MUST be of size floppy_dmalen.
-int flp_raw_read_cyl(unsigned cyl, unsigned char *buffer)
+
+int flp_read_cyl(unsigned cyl, unsigned char *buffer)
 {
     if(floppy_read_track(cyl))
     {
