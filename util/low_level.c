@@ -33,3 +33,9 @@ void sti()
 {
     asm volatile("sti");
 }
+
+
+void hlt()
+{
+    asm volatile("hlt");
+}

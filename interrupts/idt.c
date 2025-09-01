@@ -184,6 +184,8 @@ void syshalt(char *errorMessage, InterruptRegisters *regs)
     print("--------------------------------------------------------------------------------");
     println("Please reboot your computer");
     disable_cursor();
+    cli();
+    hlt();
     for (;;)
         ;
 }

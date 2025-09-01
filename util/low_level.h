@@ -4,3 +4,4 @@ unsigned short inw(unsigned short port);
 void outw(unsigned short port, unsigned short data);
 void cli();
 void sti();
+void hlt();
