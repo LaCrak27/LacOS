@@ -7,13 +7,18 @@
 
 void panic(char *msg)
 {
-    panic_intern(msg);
+    InterruptRegisters regs = {0};
+
+    regs.eip = (unsigned long)__builtin_return_address(0);
+    regs.esp = (unsigned long)__builtin_frame_address(0); // This function frame
+
+    panic_intern(msg, &regs);
 }
 
 // For the stack protector
 void __stack_chk_fail(void)
 {
-    panic_intern("Stack canary deleted!");
+    panic("Stack canary deleted!");
 }
 
 // Memory stuff
@@ -95,7 +100,7 @@ int strcmp(char *str1, char *str2)
 }
 
 // Copies source into dest
-void strcpy(char *source, char *dest)
+void strcpy(char *dest, char *source)
 {
     int i = 0;
     while (source[i] != NULL)

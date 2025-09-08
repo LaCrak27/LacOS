@@ -1,4 +1,6 @@
 *.o
 *.bin
 *.ini
+*.elf
+*.dbg
 .notes

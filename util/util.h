@@ -15,7 +15,8 @@ void panic(char *msg);
 void memcpy(char *dest, char *source, int n);
 int strlen(char* str);
 int strcmp(char *str1, char *str2);
-void strcpy(char *source, char *dest);
+void strcpy(char *dest, char *src);
+void strcat(char *str1, char *str2);
 void memset(void *dest, char val, unsigned long n);
 void trim(char *str, char trim);
 char **strsplt(char *str, char delim);
@@ -38,5 +39,13 @@ typedef struct
     unsigned long type;
     unsigned long acpi;
 } __attribute__((packed)) MapEntryStruct;
+
+struct StackFrame 
+{
+    struct StackFrame* ebp;
+    unsigned long eip;
+} __attribute__((packed));
+
+typedef struct StackFrame StackFrame;
 
 #endif // __UTIL_H__

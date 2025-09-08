@@ -103,51 +103,51 @@ void set_idt_gate(unsigned char num, unsigned long base, unsigned short sel, uns
 }
 
 char *exception_messages[32] = {
-    "Division By Zero",
-    "Debug",
-    "Non Maskable Interrupt",
-    "Breakpoint",
-    "Detected Overflow",
-    "Out of Bounds",
-    "Invalid Opcode",
-    "No Coprocessor",
-    "Double fault",
-    "Coprocessor Segment Overrun",
-    "Bad TSS",
-    "Segment not present",
-    "Stack fault",
-    "General protection fault",
-    "Page fault",
-    "Unknown Interrupt",
-    "Coprocessor Fault",
-    "Alignment Fault",
-    "Machine Check",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved"};
+    "ISR0: Division By Zero",
+    "ISR1: Debug",
+    "ISR2: Non Maskable Interrupt",
+    "ISR3: Breakpoint",
+    "ISR4: Detected Overflow",
+    "ISR5: Out of Bounds",
+    "ISR6: Invalid Opcode",
+    "ISR7: No Coprocessor",
+    "ISR8: Double fault",
+    "ISR9: Coprocessor Segment Overrun",
+    "ISR10: Bad TSS",
+    "ISR11: Segment not present",
+    "ISR12: Stack fault",
+    "ISR13: General protection fault",
+    "ISR14: Page fault",
+    "Unknown ISR",
+    "ISR16: Coprocessor Fault",
+    "ISR17: Alignment Fault",
+    "ISR18: Machine Check",
+    "Reserved ISR",
+    "Reserved ISR",
+    "Reserved ISR",
+    "Reserved ISR",
+    "Reserved ISR",
+    "Reserved ISR",
+    "Reserved ISR",
+    "Reserved ISR",
+    "Reserved ISR",
+    "Reserved ISR",
+    "Reserved ISR",
+    "Reserved ISR",
+    "Reserved ISR"};
 
 void isr_handler(InterruptRegisters *regs)
 {
-    //println(uitoa(regs->int_no));
+    // println(uitoa(regs->int_no));
     if (regs->int_no < 32)
     {
         syshalt((exception_messages[regs->int_no]), regs);
     }
-}   
+}
 
-void panic_intern(char* errorMessage)
+void panic_intern(char *errorMessage, InterruptRegisters *regs)
 {
-    syshalt(errorMessage, NULL);
+    syshalt(errorMessage, regs);
 }
 
 void syshalt(char *errorMessage, InterruptRegisters *regs)
@@ -159,35 +159,29 @@ void syshalt(char *errorMessage, InterruptRegisters *regs)
     print(" ");
     println(errorMessage);
     println("");
-    if(regs)
+    if (regs)
     {
-        print("--------------------------------------------------------------------------------");
-        println("GP Regs: ");
-        print("EAX: ");
-        println(uitohp(regs->eax, 8));
-        print("EBX: ");
-        println(uitohp(regs->ebx, 8));
-        print("ECX: ");
-        println(uitohp(regs->ecx, 8));
-        print("EDX: ");
-        println(uitohp(regs->edx, 8));
-        print("--------------------------------------------------------------------------------");
-        print("EFLAGS: ");
-        println(uitohp(regs->eflags, 8));
-        print("--------------------------------------------------------------------------------");
-        print("ESP: ");
-        println(uitohp(regs->esp, 8));
         print("--------------------------------------------------------------------------------");
         print("EIP: ");
         println(uitohp(regs->eip, 8));
+        print("ESP: ");
+        println(uitohp(regs->esp, 8));
+        print("--------------------------------------------------------------------------------");
+        println("Stack trace:");
+        StackFrame *currentStack;
+        asm("mov %0, ebp" : "=r"(currentStack) ::);
+        for (unsigned int frame = 0; currentStack && frame < 17; ++frame)
+        {
+            // Unwind to previous stack frame
+            println(uitohp(currentStack->eip, 8));
+            currentStack = currentStack->ebp;
+        }
     }
     print("--------------------------------------------------------------------------------");
     println("Please reboot your computer");
     disable_cursor();
     cli();
     hlt();
-    for (;;)
-        ;
 }
 
 void *irqRoutines[16] = {
