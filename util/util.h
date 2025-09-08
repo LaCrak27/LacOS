@@ -40,4 +40,12 @@ typedef struct
     unsigned long acpi;
 } __attribute__((packed)) MapEntryStruct;
 
+struct StackFrame 
+{
+    struct StackFrame* ebp;
+    unsigned long eip;
+} __attribute__((packed));
+
+typedef struct StackFrame StackFrame;
+
 #endif // __UTIL_H__

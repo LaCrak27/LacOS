@@ -579,14 +579,5 @@ int sh_reset(int argc, char **argv)
 
 int sh_panic(int argc, char **argv)
 {
-    asm volatile(
-        "mov eax, 0x12345678\n\t"
-        "mov ebx, 0xFFFFFFFF\n\t"
-        "mov ecx, 0x00000000\n\t"
-        "mov edx, 0x87654321\n\t"
-        : 
-        : 
-        : "eax","ebx","ecx","edx" 
-    );
-    panic("This is an example panic.");
+    panic("This is an example kernel panic message.");
 }

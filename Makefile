@@ -48,7 +48,7 @@ start: LacOS.img
 	qemu-system-i386 -fda LacOS.img -serial stdio
 
 debug: LacOS.img
-	echo "Launching qemu with debug logging" 
+	echo "Launching qemu and kdbg..." 
 	qemu-system-i386 -fda LacOS.img -S -s &
 	kdbg -r localhost:1234 ./kernel.dbg
 

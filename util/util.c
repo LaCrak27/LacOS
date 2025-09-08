@@ -7,18 +7,12 @@
 
 void panic(char *msg)
 {
-    // TODO: Stack trace
-    InterruptRegisters *regs = (InterruptRegisters *)malloc(sizeof(InterruptRegisters));
+    InterruptRegisters regs = {0};
 
-    asm("mov %0, eax" : "=rm" (regs->eax) : );
-    asm("mov %0, ebx" : "=rm" (regs->ebx) : );
-    asm("mov %0, ecx" : "=rm" (regs->ecx) : );
-    asm("mov %0, edx" : "=rm" (regs->edx) : );
+    regs.eip = (unsigned long)__builtin_return_address(0);
+    regs.esp = (unsigned long)__builtin_frame_address(0); // This function frame
 
-    print(uitoh((unsigned long) regs));
-    BochsBreak();
-
-    panic_intern(msg, regs);
+    panic_intern(msg, &regs);
 }
 
 // For the stack protector
