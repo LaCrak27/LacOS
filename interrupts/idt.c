@@ -184,7 +184,7 @@ void syshalt(char *errorMessage, InterruptRegisters *regs)
     hlt();
 }
 
-void *irqRoutines[17] = {
+void *irqRoutines[16] = {
     0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0};
 
