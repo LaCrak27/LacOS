@@ -162,24 +162,16 @@ void syshalt(char *errorMessage, InterruptRegisters *regs)
     if (regs)
     {
         print("--------------------------------------------------------------------------------");
-        println("GP Regs: ");
-        print("EAX: ");
-        println(uitohp(regs->eax, 8));
-        print("EBX: ");
-        println(uitohp(regs->ebx, 8));
-        print("ECX: ");
-        println(uitohp(regs->ecx, 8));
-        print("EDX: ");
-        println(uitohp(regs->edx, 8));
-        print("--------------------------------------------------------------------------------");
         print("EFLAGS: ");
         println(uitohp(regs->eflags, 8));
         print("--------------------------------------------------------------------------------");
+        print("EIP: ");
+        println(uitohp(regs->eip, 8));
         print("ESP: ");
         println(uitohp(regs->esp, 8));
         print("--------------------------------------------------------------------------------");
-        print("EIP: ");
-        println(uitohp(regs->eip, 8));
+        println("Stack trace:");
+        println("TODO");
     }
     print("--------------------------------------------------------------------------------");
     println("Please reboot your computer");

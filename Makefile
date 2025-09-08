@@ -45,15 +45,16 @@ bochsdbg: LacOS.img
 
 start: LacOS.img
 	echo "Launching qemu..." 
-	qemu-system-x86_64 -fda LacOS.img -serial stdio
+	qemu-system-i386 -fda LacOS.img -serial stdio
 
 debug: LacOS.img
 	echo "Launching qemu with debug logging" 
-	qemu-system-x86_64 -fda LacOS.img -d invalid_mem,guest_errors,cpu_reset
+	qemu-system-i386 -fda LacOS.img -S -s &
+	kdbg -r localhost:1234 ./kernel.dbg
 
 headless: LacOS.img
 	echo "Launching headlessly" 
-	qemu-system-x86_64 -fda LacOS.img -d guest_errors -nographic
+	qemu-system-i386 -fda LacOS.img -d guest_errors -nographic
 
 LacOS.iso: LacOS.img # This is a DOS, the ISO was experimental. A lot of things won't work.
 	mkisofs -pad -b LacOS.img -R -o LacOS.iso LacOS.img
@@ -68,11 +69,14 @@ LacOS.bin: kernel.bin boot_sect.bin
 	echo -e "$(GREEN)Done building!$(NC)"
 	cat boot_sect.bin kernel.bin > LacOS.bin
 
-
 boot_sect.bin: boot/boot_sect.asm
 	nasm boot/boot_sect.asm -f bin -o boot_sect.bin
 
-kernel.bin: pre_build ${OBJ} print_compiling_asm ${SOBJ} kernel/kernel_entry.o
+kernel.bin: kernel.elf
+	objcopy --only-keep-debug kernel.elf kernel.dbg
+	objcopy -O binary kernel.elf kernel.bin 
+
+kernel.elf: pre_build ${OBJ} print_compiling_asm ${SOBJ} kernel/kernel_entry.o
 	echo "Linking..."
 	ld -m elf_i386 -T link.ld -o $@ kernel/kernel_entry.o $(filter %.o,$^)
 

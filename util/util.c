@@ -7,6 +7,7 @@
 
 void panic(char *msg)
 {
+    // TODO: Stack trace
     InterruptRegisters *regs = (InterruptRegisters *)malloc(sizeof(InterruptRegisters));
 
     asm("mov %0, eax" : "=rm" (regs->eax) : );
