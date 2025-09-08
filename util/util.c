@@ -7,13 +7,23 @@
 
 void panic(char *msg)
 {
-    panic_intern(msg);
+    InterruptRegisters *regs = (InterruptRegisters *)malloc(sizeof(InterruptRegisters));
+
+    asm("mov %0, eax" : "=rm" (regs->eax) : );
+    asm("mov %0, ebx" : "=rm" (regs->ebx) : );
+    asm("mov %0, ecx" : "=rm" (regs->ecx) : );
+    asm("mov %0, edx" : "=rm" (regs->edx) : );
+
+    print(uitoh((unsigned long) regs));
+    BochsBreak();
+
+    panic_intern(msg, regs);
 }
 
 // For the stack protector
 void __stack_chk_fail(void)
 {
-    panic_intern("Stack canary deleted!");
+    panic("Stack canary deleted!");
 }
 
 // Memory stuff
@@ -95,7 +105,7 @@ int strcmp(char *str1, char *str2)
 }
 
 // Copies source into dest
-void strcpy(char *source, char *dest)
+void strcpy(char *dest, char *source)
 {
     int i = 0;
     while (source[i] != NULL)

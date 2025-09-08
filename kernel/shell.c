@@ -24,7 +24,7 @@ int sh_graphics(int argc, char **argv);
 int sh_bdpl(int argc, char **argv);
 int sh_beep(int argc, char **argv);
 int sh_reset(int argc, char **argv);
-int sh_crash(int argc, char **argv);
+int sh_panic(int argc, char **argv);
 
 char *builtin_cmds[] = {
     "clear",
@@ -41,7 +41,7 @@ char *builtin_cmds[] = {
     "bdpl",
     "beep",
     "reset",
-    "crash",
+    "panic",
     NULL};
 
 int (*builtin_func[])(int, char **) = {
@@ -59,7 +59,7 @@ int (*builtin_func[])(int, char **) = {
     &sh_bdpl,
     &sh_beep,
     &sh_reset,
-    &sh_crash};
+    &sh_panic};
 
 char lastLine[MAX_COLS - 2] = {0};
 char *line;
@@ -75,14 +75,10 @@ void init_shell()
             int argc = arrlen((void **)args);
             exec_line(argc, args);
         }
-        strcpy(line, lastLine);
+        strcpy(lastLine, line);
         free(line);
         freearr_str(args);
     }
-}
-
-void exit_program()
-{
 }
 
 char *read_line()
@@ -119,7 +115,7 @@ char *read_line()
             switch (pressedKey)
             {
             case UP:
-                strcpy(lastLine, lineContent);
+                strcpy(lineContent, lastLine);
                 while (get_cursor_col() > 2)
                 {
                     erase_char();
@@ -581,7 +577,16 @@ int sh_reset(int argc, char **argv)
     reset();
 }
 
-int sh_crash(int argc, char **argv)
+int sh_panic(int argc, char **argv)
 {
-    int funni = 0x69 / *(char *)0x7DF0;
+    asm volatile(
+        "mov eax, 0x12345678\n\t"
+        "mov ebx, 0xFFFFFFFF\n\t"
+        "mov ecx, 0x00000000\n\t"
+        "mov edx, 0x87654321\n\t"
+        : 
+        : 
+        : "eax","ebx","ecx","edx" 
+    );
+    panic("This is an example panic.");
 }

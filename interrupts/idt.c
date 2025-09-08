@@ -138,16 +138,16 @@ char *exception_messages[32] = {
 
 void isr_handler(InterruptRegisters *regs)
 {
-    //println(uitoa(regs->int_no));
+    // println(uitoa(regs->int_no));
     if (regs->int_no < 32)
     {
         syshalt((exception_messages[regs->int_no]), regs);
     }
-}   
+}
 
-void panic_intern(char* errorMessage)
+void panic_intern(char *errorMessage, InterruptRegisters *regs)
 {
-    syshalt(errorMessage, NULL);
+    syshalt(errorMessage, regs);
 }
 
 void syshalt(char *errorMessage, InterruptRegisters *regs)
@@ -159,7 +159,7 @@ void syshalt(char *errorMessage, InterruptRegisters *regs)
     print(" ");
     println(errorMessage);
     println("");
-    if(regs)
+    if (regs)
     {
         print("--------------------------------------------------------------------------------");
         println("GP Regs: ");
@@ -186,13 +186,11 @@ void syshalt(char *errorMessage, InterruptRegisters *regs)
     disable_cursor();
     cli();
     hlt();
-    for (;;)
-        ;
 }
 
-void *irqRoutines[16] = {
+void *irqRoutines[17] = {
     0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0};
+    0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 // Essentialy the equivalent to registering an event
 void irq_install_handler(int irq, void (*handler)(InterruptRegisters *r))
