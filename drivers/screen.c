@@ -143,22 +143,28 @@ void print_char(char character, int col, int row)
     {
         int rows = offset / (2 * MAX_COLS);
         offset = get_screen_offset(79, rows);
-        // Serial only returns by itself when you press the enter key
-        // so we need to make this so that it also does it when programs want newlines
-#ifdef COM1_SHELL
-        write_serial('\r', COM1_PORT);
-#endif
     }
     else
     {
         vidmem[offset] = character;
         vidmem[offset + 1] = attribute_byte;
-    }
 #ifdef COM1_SHELL
-    write_serial(character, COM1_PORT);
+        write_serial(character, COM1_PORT);
 #endif
+    }
+
     // Update offset
     offset += 2;
+
+#ifdef COM1_SHELL
+    // Simulate wrap around in serial port
+    if ((offset / 2) % MAX_COLS == 0)
+    {
+        write_serial('\n', COM1_PORT);
+        write_serial('\r', COM1_PORT);
+    }
+#endif
+
     offset = handle_scrolling(offset);
     set_cursor(offset);
 }

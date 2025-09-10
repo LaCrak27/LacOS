@@ -33,7 +33,7 @@ clean:
 pre_build: clean 
 	echo "Building LacOS..."
 	echo "Extras:"
-	echo -e "	- COM1 Shell support: $(COM1_SHELL_ENABLED)"
+	echo -e "	- COM1 Shell support (with-com1-shell): $(COM1_SHELL_ENABLED)"
 	echo "Compiling C files..."
 
 print_compiling_asm:
