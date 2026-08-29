@@ -23,7 +23,7 @@ int floppy_write_track(unsigned cyl);
 void floppy_motor_kill();
 
 // DMA buffer
-static unsigned char floppy_dmabuf[floppy_dmalen]__attribute__((aligned(0x8000)));
+static unsigned char *floppy_dmabuf = (char *)0x80000; // Up until 0x90000, where extended bios data begins
 
 static char floppy_available = 0;
 char flp_avail()
