@@ -20,6 +20,9 @@ MAP_OFFSET equ 0x1000 ; Where to place detected memory map
     and al, 0xFE
     out 0x92, al
 a20_on:
+    mov bx, boot_msg
+    call print_string
+
     call get_map
 
     call load_kernel
@@ -28,8 +31,11 @@ a20_on:
 
     jmp $ ; Since we should never get here, hang so we don't get the CPU randomly executing code in memory
 
+boot_msg:
+    db "Loading LacOS kernel...", 0
 
 ; Including some nice ass routines i made
+%include "boot/print/print_helper.asm"
 %include "boot/memory/get_map.asm"
 %include "boot/memory/memcpy.asm"
 %include "boot/disk/disk_load.asm"

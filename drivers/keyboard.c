@@ -85,30 +85,21 @@ void e_kpress(char scanCode, char press)
     static char capsOn = 0;
     static char capsLock = 0;
     static char ctrlPressed = 0;
+    static char altPressed = 0;
+    static char deletePressed = 0;
     switch (scanCode)
     {
-    case 29: // LCtrl
-        if(!press)
-        {
-            ctrlPressed = 1;
-        }
-        else
-        {
-            ctrlPressed = 0;
-        }
+    case 0x1D: // LCtrl
+        ctrlPressed = !press;
         break;
-    case 42:
+    case 0x38: // LAlt
+        altPressed = !press;
+        break;
+    case 0x2A:
         // shift key
-        if (!press)
-        {
-            capsOn = 1;
-        }
-        else
-        {
-            capsOn = 0;
-        }
+        capsOn = !press;
         break;
-    case 58:
+    case 0x3A:
         if (!capsLock && !press)
         {
             capsLock = 1;
@@ -119,31 +110,25 @@ void e_kpress(char scanCode, char press)
         }
         break;
     default:
-        if (!press)
+        if (press)
+            return;
+
+        if (ctrlPressed && altPressed && deletePressed)
         {
-            if(lowercase[scanCode] == 'c' && ctrlPressed)
-            {
-                outb(0x20, 0x20); // Aknowledge interrupt to the PIC
-                if(capsOn)
-                {
-                    reboot();
-                }
-                else
-                {
-                    reset();
-                }
-            }
-            if (capsOn || capsLock)
-            {
-                resKey = (uppercase[scanCode]);
-                waitingForKey = 0;
-            }
-            else
-            {
-                resKey = (lowercase[scanCode]);
-                waitingForKey = 0;
-            }
+            outb(0x20, 0x20); // Aknowledge interrupt to the PIC
+            reboot;
         }
+        if (capsOn || capsLock)
+        {
+            resKey = (uppercase[scanCode]);
+            waitingForKey = 0;
+        }
+        else
+        {
+            resKey = (lowercase[scanCode]);
+            waitingForKey = 0;
+        }
+
         break;
     }
 }

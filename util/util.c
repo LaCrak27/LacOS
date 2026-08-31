@@ -415,8 +415,6 @@ void __ubsan_handle_type_mismatch_v1(struct type_mismatch_info *type_mismatch, u
 void reset()
 {
     asm(
-        "mov ebp, 0x90000\n"
-        "mov esp, ebp\n" // Clear stack
-        "jmp 0x101F0"    // Jump to kmain
+        "jmp 0x101F0" // kernel_entry.asm
     );
 }

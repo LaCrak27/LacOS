@@ -25,6 +25,7 @@ int sh_bdpl(int argc, char **argv);
 int sh_beep(int argc, char **argv);
 int sh_reset(int argc, char **argv);
 int sh_panic(int argc, char **argv);
+int sh_reboot(int argc, char **argv);
 
 char *builtin_cmds[] = {
     "clear",
@@ -42,6 +43,7 @@ char *builtin_cmds[] = {
     "beep",
     "reset",
     "panic",
+    "reboot",
     NULL};
 
 int (*builtin_func[])(int, char **) = {
@@ -59,7 +61,8 @@ int (*builtin_func[])(int, char **) = {
     &sh_bdpl,
     &sh_beep,
     &sh_reset,
-    &sh_panic};
+    &sh_panic,
+    &sh_reboot};
 
 char lastLine[MAX_COLS - 2] = {0};
 char *line;
@@ -580,4 +583,10 @@ int sh_reset(int argc, char **argv)
 int sh_panic(int argc, char **argv)
 {
     panic("This is an example kernel panic message.");
+}
+
+int sh_reboot(int argc, char **argv)
+{
+    reboot();
+    return 1;
 }
