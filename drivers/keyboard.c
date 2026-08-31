@@ -5,7 +5,7 @@
 #include "serial.h"
 #include "../util/util.h"
 
-void e_kpress(char scanCode, char press);
+void e_kpress(unsigned char scanCode, char press);
 
 const unsigned long lowercase[128] = {
     UNKNOWN, ESC, '1', '2', '3', '4', '5', '6', '7', '8',
@@ -68,7 +68,7 @@ unsigned long read_key()
 
 void keyboard_handler(InterruptRegisters *regs)
 {
-    char scanCode = inb(0x60) & 0x7F; // What key is pressed
+    unsigned char scanCode = inb(0x60); // What key is pressed
     char press = inb(0x60) & 0x80;    // Press down, or released
 
     e_kpress(scanCode, press);
@@ -79,25 +79,59 @@ void init_keyboard()
     irq_install_handler(1, &keyboard_handler);
 }
 
-void e_kpress(char scanCode, char press)
+void e_kpress(unsigned char scanCode, char press)
 {
+    static char extendedKey = 0;
     // press is inverted for some reason
+    static char rShift = 0;
+    static char lShift = 0;
     static char capsOn = 0;
     static char capsLock = 0;
+    static char lCtrlPressed = 0;
+    static char rCtrlPressed = 0;
     static char ctrlPressed = 0;
     static char altPressed = 0;
     static char deletePressed = 0;
+
+    if(extendedKey)
+    {
+        switch (scanCode)
+        {
+        case 0x53: // Delete
+            deletePressed = !press;
+            break;
+        
+        case 0x1D: // RCtrl
+            rCtrlPressed = !press;
+            ctrlPressed = lCtrlPressed || rCtrlPressed;
+        break;
+
+        default:
+            break;
+        }
+    }
+
     switch (scanCode)
     {
+    case 0xE0:
+        extendedKey = 1;
+        return;
     case 0x1D: // LCtrl
-        ctrlPressed = !press;
+        lCtrlPressed = !press;
+        ctrlPressed = lCtrlPressed || rCtrlPressed;
         break;
     case 0x38: // LAlt
         altPressed = !press;
         break;
     case 0x2A:
-        // shift key
-        capsOn = !press;
+        // LShift key
+        lShift = !press;
+        capsOn = lShift || rShift;
+        break;
+    case 0x36:
+        // RShift key
+        rShift = !press;
+        capsOn = lShift || rShift;
         break;
     case 0x3A:
         if (!capsLock && !press)
@@ -110,13 +144,13 @@ void e_kpress(char scanCode, char press)
         }
         break;
     default:
-        if (press)
+        if (press || scanCode > 127)
             return;
 
         if (ctrlPressed && altPressed && deletePressed)
         {
             outb(0x20, 0x20); // Aknowledge interrupt to the PIC
-            reboot;
+            reboot();
         }
         if (capsOn || capsLock)
         {
@@ -131,4 +165,6 @@ void e_kpress(char scanCode, char press)
 
         break;
     }
+    if(extendedKey)
+        extendedKey = 0;
 }
