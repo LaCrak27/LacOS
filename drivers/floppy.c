@@ -151,6 +151,7 @@ int floppy_calibrate()
         // Attempt to positions head to cylinder 0
         floppy_write_cmd(RECALIBRATE);
         floppy_write_cmd(0); // argument is drive, we only support 0
+        sleep(100);
 
         floppy_check_interrupt(&st0, &cyl); // sense interruptttt
 

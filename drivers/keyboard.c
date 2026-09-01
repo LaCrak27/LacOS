@@ -7,7 +7,7 @@
 
 void e_kpress(unsigned char scanCode, char press);
 
-const unsigned long lowercase[128] = {
+static const unsigned long lowercase[128] = {
     UNKNOWN, ESC, '1', '2', '3', '4', '5', '6', '7', '8',
     '9', '0', '-', '=', '\b', '\t', 'q', 'w', 'e', 'r',
     't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n', CTRL,
@@ -19,7 +19,7 @@ const unsigned long lowercase[128] = {
     UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN,
     UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN};
 
-const unsigned long uppercase[128] = {
+static const unsigned long uppercase[128] = {
     UNKNOWN, ESC, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '\b', '\t', 'Q', 'W', 'E', 'R',
     'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', '\n', CTRL, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', '~', LSHFT, '|', 'Z', 'X', 'C',
     'V', 'B', 'N', 'M', '<', '>', '?', RSHFT, '*', ALT, ' ', CAPS, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, NUMLCK, SCRLCK, HOME, UP, PGUP, '-',
@@ -68,9 +68,9 @@ unsigned long read_key()
 
 void keyboard_handler(InterruptRegisters *regs)
 {
-    unsigned char scanCode = inb(0x60); // What key is pressed
-    char press = inb(0x60) & 0x80;    // Press down, or released
-
+    unsigned char input = inb(0x60); 
+    char press = !(input & 0x80);           // Press down, or released
+    unsigned char scanCode = input & 0x7F;  // What key is pressed
     e_kpress(scanCode, press);
 }
 
@@ -79,92 +79,91 @@ void init_keyboard()
     irq_install_handler(1, &keyboard_handler);
 }
 
+static char rShift = 0;
+static char lShift = 0;
+static char capsOn = 0;
+static char capsLock = 0;
+static char lCtrlPressed = 0;
+static char rCtrlPressed = 0;
+static char ctrlPressed = 0;
+static char altPressed = 0;
+static char deletePressed = 0;
+
 void e_kpress(unsigned char scanCode, char press)
 {
     static char extendedKey = 0;
-    // press is inverted for some reason
-    static char rShift = 0;
-    static char lShift = 0;
-    static char capsOn = 0;
-    static char capsLock = 0;
-    static char lCtrlPressed = 0;
-    static char rCtrlPressed = 0;
-    static char ctrlPressed = 0;
-    static char altPressed = 0;
-    static char deletePressed = 0;
-
-    if(extendedKey)
+    if (extendedKey)
     {
         switch (scanCode)
         {
         case 0x53: // Delete
-            deletePressed = !press;
+            deletePressed = press;
             break;
-        
+
         case 0x1D: // RCtrl
-            rCtrlPressed = !press;
+            rCtrlPressed = press;
             ctrlPressed = lCtrlPressed || rCtrlPressed;
-        break;
+            break;
 
         default:
             break;
         }
-    }
-
-    switch (scanCode)
-    {
-    case 0xE0:
-        extendedKey = 1;
-        return;
-    case 0x1D: // LCtrl
-        lCtrlPressed = !press;
-        ctrlPressed = lCtrlPressed || rCtrlPressed;
-        break;
-    case 0x38: // LAlt
-        altPressed = !press;
-        break;
-    case 0x2A:
-        // LShift key
-        lShift = !press;
-        capsOn = lShift || rShift;
-        break;
-    case 0x36:
-        // RShift key
-        rShift = !press;
-        capsOn = lShift || rShift;
-        break;
-    case 0x3A:
-        if (!capsLock && !press)
-        {
-            capsLock = 1;
-        }
-        else if (capsLock && !press)
-        {
-            capsLock = 0;
-        }
-        break;
-    default:
-        if (press || scanCode > 127)
-            return;
-
-        if (ctrlPressed && altPressed && deletePressed)
-        {
-            outb(0x20, 0x20); // Aknowledge interrupt to the PIC
-            reboot();
-        }
-        if (capsOn || capsLock)
-        {
-            resKey = (uppercase[scanCode]);
-            waitingForKey = 0;
-        }
-        else
-        {
-            resKey = (lowercase[scanCode]);
-            waitingForKey = 0;
-        }
-
-        break;
-    }
-    if(extendedKey)
         extendedKey = 0;
+    }
+    else
+    {
+        switch (scanCode)
+        {
+        case 0x60:
+            extendedKey = 1;
+            break;
+        case 0x1D: // LCtrl
+            lCtrlPressed = press;
+            ctrlPressed = lCtrlPressed || rCtrlPressed;
+            break;
+        case 0x38: // LAlt
+            altPressed = press;
+            break;
+        case 0x2A:
+            // LShift key
+            lShift = press;
+            capsOn = lShift || rShift;
+            break;
+        case 0x36:
+            // RShift key
+            rShift = press;
+            capsOn = lShift || rShift;
+            break;
+        case 0x3A:
+            if (!capsLock && press)
+            {
+                capsLock = 1;
+            }
+            else if (capsLock && press)
+            {
+                capsLock = 0;
+            }
+            break;
+        default:
+            if (!press || scanCode > 127)
+                break;
+            if (capsOn || capsLock)
+            {
+                resKey = (uppercase[scanCode]);
+                waitingForKey = 0;
+            }
+            else
+            {
+                resKey = (lowercase[scanCode]);
+                waitingForKey = 0;
+            }
+
+            break;
+        }
+    }
+    if (ctrlPressed && altPressed && deletePressed)
+    {
+        outb(0x20, 0x20); // Aknowledge interrupt to the PIC
+        reboot();
+    }
 }

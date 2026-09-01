@@ -1,7 +1,7 @@
 .SILENT:
 .PHONY: clean, all, pre_build, LacOS.img
 C_SOURCES = $(wildcard kernel/*.c drivers/*.c interrupts/*.c util/*.c)
-C_FLAGS = -masm=intel -D COMP_DATE='"$(shell date)"' -g -fsanitize=null -mno-mmx -mno-sse -mno-sse2 -fno-pie -ffreestanding -m32
+C_FLAGS = -masm=intel -D COMP_DATE='"$(shell date)"' -g -fsanitize=null -mno-mmx -mno-sse -mno-sse2 -fno-pie -ffreestanding -m32 -oS
 args = `arg="$(filter-out $@,$(MAKECMDGOALS))" && echo $${arg:-${1}}`
 OBJ = ${C_SOURCES:.c=.o}
 SOBJ = ${ASM_SOURCES:.asm=.o}
